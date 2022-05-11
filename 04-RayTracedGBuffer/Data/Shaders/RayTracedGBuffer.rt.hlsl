@@ -4,7 +4,6 @@ __import Raytracing;
 __import ShaderCommon;
 __import Shading; 
 
-
 // This shader doesn't use ray payloads.
 struct SimplePayload {
 	bool dummyValue;
@@ -26,7 +25,7 @@ void GBufferRayGen() {
     ray.Origin = gCamera.posW;
     // A world space vector.
     ray.Direction = normalize(rayDir);
-    ray.Tmin = 0.0f;
+    ray.TMin = 0.0f;
     // Intersections beyond this t are ignored.
     ray.TMax = 1e+38f;
 
@@ -64,7 +63,7 @@ void PrimaryMiss(inout SimplePayload) {
 
 // attributes are the attributes of the hit/intersection.
 [shader("anyhit")]
-void PrimaryAnyHit(inout SimplePayload, BuiltInTriangleIntersectionAttributes atttributes) {
+void PrimaryAnyHit(inout SimplePayload, BuiltInTriangleIntersectionAttributes attributes) {
     if (alphaTestFails(attributes)) {
         // The intersected geometry is transparent. Acceleration structure traversal
         // resumes after IgnoreHit().

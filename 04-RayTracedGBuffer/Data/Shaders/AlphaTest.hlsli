@@ -20,3 +20,8 @@ bool alphaTestFails(BuiltInTriangleIntersectionAttributes attributes) {
     // The alpha channel of the diffuse color is the opacity of the material.
     return (baseColor.a < gMaterial.alphaThreshold);
 }
+
+ShadingData getShadingData(uint primId, BuiltInTriangleIntersectionAttributes barys) {
+	VertexOut vsOut = getVertexAttributes(primId, barys);
+	return prepareShadingData(vsOut, gMaterial, gCamera.posW, 0);
+}
