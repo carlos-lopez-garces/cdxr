@@ -3,7 +3,7 @@
 namespace {
     // Shader filepath. This shader file contains entry points for the ray generation,
     // miss, any hit, and closest hit shaders.
-    const char *kFileRayTrace = "Shaders\\rayTracedGBuffer.rt.hlsl";
+    const char *kFileRayTrace = "Shaders\\RayTracedGBuffer.rt.hlsl";
 
     // Entrypoints for various shaders contained in kFileRayTrace.
     const char *kEntryPointRayGen = "GBufferRayGen";
@@ -62,8 +62,11 @@ void RayTracedGBufferPass::execute(RenderContext* pRenderContext) {
     missVars["MissShaderCB"]["gBgColor"] = mBgColor;
     missVars["gMatDif"] = materialDiffuse;
 
-    // Set hit group #0 variables used in closest-hit and any-hit shaders. Each pVars
-    // corresponds to a geometry instance.
+    // Set hit group #0 variables used in closest-hit and any-hit shaders.
+    // A hit group is an intersection, a closest-hit shader, and an any-hit shader. Hit group #0
+    // corresponds to primary rays.
+    //
+    // Each pVars corresponds to a geometry instance.
     for (auto pVars : mpRays->getHitVars(0)) {
         // Bind textures to hit shaders for this geometry instance.
         pVars["gWsPos"] = worldPosition;
