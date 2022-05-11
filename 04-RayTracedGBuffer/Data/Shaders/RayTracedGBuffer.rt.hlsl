@@ -41,3 +41,21 @@ void GBufferRayGen() {
     // hitProgramCount is supplied by the framework and is the number of hit groups that exist.
     TraceRay(gRtScene, RAY_FLAG_CULL_BACK_FACING_TRIANGLES, 0XFF, 0, hitProgramCount, 0, ray, payload);
 }
+
+// The GBuffer.
+RWTexture2D<float4> gWsPos;
+RWTexture2D<float4> gWsNorm;
+RWTexture2D<float4> gMatDif;
+RWTexture2D<float4> gMatSpec;
+RWTexture2D<float4> gMatExtra;
+RWTexture2D<float4> gMatEmissive;
+
+cbuffer MissShaderCB {
+    // Rays that escape the scene sample this (background) color in the miss shader.
+	float3 gBgColor;
+};
+
+[shader("miss")]
+void PrimaryMiss(inout SimplePayload) {
+    gMatSpec[DispatchRaysIndex().xy] = float4(gBgColor, 1.0f);
+}
