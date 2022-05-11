@@ -88,10 +88,16 @@ void AoRayGen () {
             // Cosine-weighted sampling of the hemisphere of directions.
             float3 worldDirection = getCosHemisphereSample(seed, worldNormal.xyz);
 
+            // 1.0 if the ray doesn't hit any geometry.
             ao += spawnAoRay(worldPosition.xyz, worldDirection, gMinT, gAoRadius);
         }
     }
 
     float aoColor = ao / float(gNumRays);
     gOutput[launchIndex] = float4(aoColor, aoColor, aoColor, 1.0f);
+}
+
+[shader("miss")]
+void AoMiss(inout AoRayPayload payload) {
+	payload.aoValue = 1.0f;
 }
