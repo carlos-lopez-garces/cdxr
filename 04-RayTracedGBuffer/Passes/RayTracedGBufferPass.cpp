@@ -77,3 +77,11 @@ void RayTracedGBufferPass::execute(RenderContext* pRenderContext) {
     // Launch and trace rays.
     mpRays->execute(pRenderContext, mpResManager->getScreenSize());
 }
+
+void RayTracedGBufferPass::initScene(RenderContext* pRenderContext, Scene::SharedPtr pScene) {
+	mpScene = std::dynamic_pointer_cast<RtScene>(pScene);
+
+	if (mpRays) {
+        mpRays->setScene(mpScene);
+    }
+}

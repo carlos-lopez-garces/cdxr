@@ -15,9 +15,14 @@ protected:
 
     RayTracedGBufferPass() : RenderPass("Ray Traced G-Buffer", "Ray Traced G-Buffer Options") {}
 
+    // Requests textures for the GBuffer to the resource manager, sets the default scene,
+    // and sets the shaders in the RayLaunch.
     bool initialize(Falcor::RenderContext* pRenderContext, ResourceManager::SharedPtr pResManager) override;
 
+    // Binds the GBuffer textures to the shaders and launches and traces rays.
     void execute(Falcor::RenderContext* pRenderContext) override;
+
+    void initScene(RenderContext* pRenderContext, Scene::SharedPtr pScene) override;
 
 public:
     static SharedPtr create() {
