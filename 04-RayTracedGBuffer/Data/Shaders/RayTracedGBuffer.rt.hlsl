@@ -59,3 +59,14 @@ cbuffer MissShaderCB {
 void PrimaryMiss(inout SimplePayload) {
     gMatSpec[DispatchRaysIndex().xy] = float4(gBgColor, 1.0f);
 }
+
+#include "AlphaTest.hlsli"
+
+[shader("anyhit")]
+void PrimaryAnyHit(inout SimplePayload, BuiltInTriangleIntersectionAttributes atttributes) {
+    if (alphaTestFails(attributes)) {
+        // The intersected geometry is transparent. Acceleration structure traversal
+        // resumes after IgnoreHit().
+        IgnoreHit();
+    }
+}
