@@ -3,8 +3,8 @@ __import Raytracing;
 __import ShaderCommon;
 __import Shading;
 
-#include "PRNG.hlsli"
 #include "Sampling.hlsli"
+#include "AlphaTesting.hlsli"
 
 cbuffer RayGenCB {
     // Determines a pixel's nearby geometry that participates in the pixel's AO.
@@ -34,20 +34,20 @@ struct AoRayPayload{
 
 // An AO ray doesn't bounce, it simply tests whether there's geometry in its direction
 // or not.
-float spawnAoRay(float3 origing, float3 direction, float minT, float maxT) {
+float spawnAoRay(float3 origin, float3 direction, float minT, float maxT) {
     // Carries AO value. The aoValue starts out at 0.0 because we assume that the
     // ray will intersect geometry; if it doesn't, the miss shader will set it to 1.0.
     AoRayPayload payload = { 0.0f };
 
     RayDesc aoRay;
-    aoRay.Origin = orig;
+    aoRay.Origin = origin;
     aoRay.Direction = direction;
     aoRay.TMin = minT;
     aoRay.TMax = maxT;
 
     TraceRay(
         // Ray acceleration structure supplied by Falcor.
-        gRtScene
+        gRtScene,
         // We don't use the closesthit shader.
         RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
         0xFF,
@@ -91,7 +91,7 @@ void AoRayGen () {
 
         for (int i = 0; i < gNumRays; ++i) {
             // Cosine-weighted sampling of the hemisphere of directions.
-            float3 worldDirection = getCosHemisphereSample(seed, worldNormal.xyz);
+            float3 worldDirection = getCosHemisphereSample(prngSeed, worldNormal.xyz);
 
             // The returned value may be 0.0 if the point is occluded from this direction
             // (if the AO ray intersects geometry) or 1.0 if the point is not occluded from

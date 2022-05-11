@@ -11,7 +11,7 @@ float3 getPerpendicularVector(float3 u) {
 }
 
 // Cosine-weighted sampling of the hemisphere of directions.
-float getCosHemisphereSample(inout uint seed, float3 hitNormal) {
+float3 getCosHemisphereSample(inout uint seed, float3 hitNormal) {
     // Form a basis for tangent space with origin at the hit point.
     float3 bitangent = getPerpendicularVector(hitNormal);
     float3 tangent = cross(bitangent, hitNormal);
