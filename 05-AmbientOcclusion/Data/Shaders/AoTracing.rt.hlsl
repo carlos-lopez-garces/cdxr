@@ -28,12 +28,17 @@ Texture2D<float4> gNorm;
 RWTexture2D<float4> gOutput;
 
 struct AoRayPayload{
+    // Valid values are 0.0 (occluded) and 1.0 (not occluded).
 	float aoValue;
 };
 
+// An AO ray doesn't bounce, it simply tests whether there's geometry in its direction
+// or not.
 float spawnAoRay(float3 origing, float3 direction, float minT, float maxT) {
-    // Carries AO value.
+    // Carries AO value. The aoValue starts out at 0.0 because we assume that the
+    // ray will intersect geometry; if it doesn't, the miss shader will set it to 1.0.
     AoRayPayload payload = { 0.0f };
+
     RayDesc aoRay;
     aoRay.Origin = orig;
     aoRay.Direction = direction;
@@ -88,17 +93,24 @@ void AoRayGen () {
             // Cosine-weighted sampling of the hemisphere of directions.
             float3 worldDirection = getCosHemisphereSample(seed, worldNormal.xyz);
 
-            // 1.0 if the ray doesn't hit any geometry.
+            // The returned value may be 0.0 if the point is occluded from this direction
+            // (if the AO ray intersects geometry) or 1.0 if the point is not occluded from
+            // this direction (if the AO ray escapes the scene without intersecting any
+            // geometry).
             ao += spawnAoRay(worldPosition.xyz, worldDirection, gMinT, gAoRadius);
         }
     }
 
+    // The ratio of misses to spawned AO rays determines the degree to which the hit point is
+    // occluded.
     float aoColor = ao / float(gNumRays);
     gOutput[launchIndex] = float4(aoColor, aoColor, aoColor, 1.0f);
 }
 
 [shader("miss")]
 void AoMiss(inout AoRayPayload payload) {
+    // The AO ray didn't hit any geometry, so its origin point is not occluded from this
+    // ray's direction.
 	payload.aoValue = 1.0f;
 }
 
