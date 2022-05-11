@@ -1,4 +1,4 @@
-#include "AmbientOcclusionPass.h"
+#include "RayTracedAmbientOcclusionPass.h"
 
 namespace {
 	// Ray tracing shader file.
@@ -11,7 +11,7 @@ namespace {
 	const char *kEntryPointAnyHit = "AoAnyHit";
 };
 
-bool AmbientOcclusionPass::initialize(RenderContext* pRenderContext, ResourceManager::SharedPtr pResManager) {
+bool RayTracedAmbientOcclusionPass::initialize(RenderContext* pRenderContext, ResourceManager::SharedPtr pResManager) {
 	mpResManager = pResManager;
 	mpResManager->requestTextureResources({
 		"WorldPosition",
@@ -32,4 +32,21 @@ bool AmbientOcclusionPass::initialize(RenderContext* pRenderContext, ResourceMan
 	}
 
 	return true;
+}
+
+void RayTracedAmbientOcclusionPass::initScene(RenderContext *pRenderContext, Falcor::Scene::SharedPtr pScene) {
+	// std::dynamic_pointer_cast creates a new std::shared_ptr from pScene's stored pointer
+	// after downcasting it (RtScene is a derived class of Scene).
+	mpScene = std::dynamic_pointer_cast<RtScene>(pScene);
+
+	if (mpRays) {
+		mpRays->setScene(mpScene);
+	}
+
+	if (!mpScene) {
+		return;
+	}
+
+	// By default, the AO radius is 5% the size of the scene's radius.
+	mAoRadius = glm::max(0.1f, mpScene->getRadius() * 0.05f);
 }
