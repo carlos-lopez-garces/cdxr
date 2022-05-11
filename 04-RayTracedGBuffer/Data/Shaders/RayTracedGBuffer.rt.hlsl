@@ -62,6 +62,7 @@ void PrimaryMiss(inout SimplePayload) {
 
 #include "AlphaTest.hlsli"
 
+// attributes are the attributes of the hit/intersection.
 [shader("anyhit")]
 void PrimaryAnyHit(inout SimplePayload, BuiltInTriangleIntersectionAttributes atttributes) {
     if (alphaTestFails(attributes)) {
@@ -69,4 +70,23 @@ void PrimaryAnyHit(inout SimplePayload, BuiltInTriangleIntersectionAttributes at
         // resumes after IgnoreHit().
         IgnoreHit();
     }
+}
+
+// attributes are the attributes of the hit/intersection.
+[shader("closesthit")]
+void PrimaryClosestHit(inout SimplePayload, BuiltInTriangleIntersectionAttributes attributes) {
+    // Pixel coordinate.
+    uint2 launchIndex = DispatchRaysIndex().xy;
+    
+    // PrimitiveIndex() is an object introspection intrinsic that returns
+    // the identifier of the current primitive.
+    ShadingData shadeData = getShadingData(PrimitiveIndex(), attributes);
+
+    // Populate the GBuffer.
+    gWsPos[launchIndex] = float4(shadeData.posW, 1.f);
+	gWsNorm[launchIndex] = float4(shadeData.N, length(shadeData.posW - gCamera.posW));
+	gMatDif[launchIndex] = float4(shadeData.diffuse, shadeData.opacity);
+	gMatSpec[launchIndex] = float4(shadeData.specular, shadeData.linearRoughness);
+	gMatExtra[launchIndex] = float4(shadeData.IoR, shadeData.doubleSidedMaterial ? 1.f : 0.f, 0.f, 0.f);
+	gMatEmissive[launchIndex] = float4(shadeData.emissive, 0.f);
 }
