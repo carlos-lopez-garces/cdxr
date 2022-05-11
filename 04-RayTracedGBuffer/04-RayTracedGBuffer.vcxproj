@@ -20,7 +20,7 @@
     <ClCompile Include="..\SharedUtils\SceneLoaderWrapper.cpp" />
     <ClCompile Include="..\SharedUtils\SimpleVars.cpp" />
     <ClCompile Include="Passes\RayTracedGBufferPass.cpp" />
-    <ClCompile Include="Tutor04-RayTracedGBuffer.cpp" />
+    <ClCompile Include="RayTracedGBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\CommonPasses\CopyToOutputPass.h" />

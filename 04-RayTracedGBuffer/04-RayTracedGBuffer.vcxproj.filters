@@ -56,7 +56,7 @@
     <ClCompile Include="..\SharedUtils\SimpleVars.cpp">
       <Filter>SharedUtils</Filter>
     </ClCompile>
-    <ClCompile Include="Tutor04-RayTracedGBuffer.cpp" />
+    <ClCompile Include="RayTracedGBuffer.cpp" />
     <ClCompile Include="Passes\RayTracedGBufferPass.cpp">
       <Filter>Passes</Filter>
     </ClCompile>
