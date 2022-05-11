@@ -62,7 +62,6 @@
     <ClCompile Include="..\SharedUtils\SimpleVars.cpp">
       <Filter>SharedUtils</Filter>
     </ClCompile>
-    <ClCompile Include="AmbientOcclusion.cpp" />
     <ClCompile Include="..\CommonPasses\SimpleGBufferPass.cpp">
       <Filter>CommonPasses</Filter>
     </ClCompile>
@@ -84,11 +83,7 @@
     <ClCompile Include="..\SharedUtils\RenderPass.cpp">
       <Filter>SharedUtils</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <FxCompile Include="Data\Shaders\AoTracing.rt.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
+    <ClCompile Include="HybridAmbientOcclusion.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Data\Shaders\PRNG.hlsli">
@@ -97,5 +92,6 @@
     <None Include="Data\Shaders\Sampling.hlsli">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Data\Shaders\AoTracing.rt.hlsl" />
   </ItemGroup>
 </Project>

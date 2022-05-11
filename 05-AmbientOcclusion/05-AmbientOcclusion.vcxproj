@@ -21,8 +21,8 @@
     <ClCompile Include="..\SharedUtils\ResourceManager.cpp" />
     <ClCompile Include="..\SharedUtils\SceneLoaderWrapper.cpp" />
     <ClCompile Include="..\SharedUtils\SimpleVars.cpp" />
+    <ClCompile Include="HybridAmbientOcclusion.cpp" />
     <ClCompile Include="Passes\RayTracedAmbientOcclusionPass.cpp" />
-    <ClCompile Include="AmbientOcclusion.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\CommonPasses\CopyToOutputPass.h" />
