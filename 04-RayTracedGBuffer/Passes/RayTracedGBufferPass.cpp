@@ -42,3 +42,38 @@ bool RayTracedGBufferPass::initialize(Falcor::RenderContext* pRenderContext, Res
 
     return true;
 }
+
+void RayTracedGBufferPass::execute(RenderContext* pRenderContext) {
+    if (!mpRays || !mpRays->readyToRender()) {
+        return;
+    }
+
+    // Load GBuffer textures, cleared to black. We write directly to them using UAVs.
+    Falcor::Texture::SharedPtr worldPosition = mpResManager->getClearedTexture("WorldPosition", vec4(0, 0, 0, 0));
+    Falcor::Texture::SharedPtr worldNormal = mpResManager->getClearedTexture("WorldNormal", vec4(0, 0, 0, 0));
+    Falcor::Texture::SharedPtr materialDiffuse = mpResManager->getClearedTexture("MaterialDiffuse", vec4(0, 0, 0, 0));
+    Falcor::Texture::SharedPtr materialSpecRough = mpResManager->getClearedTexture("MaterialSpecRough", vec4(0, 0, 0, 0));
+    Falcor::Texture::SharedPtr materialExtraParams = mpResManager->getClearedTexture("MaterialExtraParams", vec4(0, 0, 0, 0));
+    Falcor::Texture::SharedPtr materialEmissive = mpResManager->getClearedTexture("Emissive", vec4(0, 0, 0, 0));
+
+    // Set miss shader #0 variables.
+    auto missVars = mpRays->getMissVars(0);
+    // Rays that escape the scene sample this color.
+    missVars["MissShaderCB"]["gBgColor"] = mBgColor;
+    missVars["gMatDif"] = materialDiffuse;
+
+    // Set hit group #0 variables used in closest-hit and any-hit shaders. Each pVars
+    // corresponds to a geometry instance.
+    for (auto pVars : mpRays->getHitVars(0)) {
+        // Bind textures to hit shaders for this geometry instance.
+        pVars["gWsPos"] = worldPosition;
+        pVars["gWsNorm"] = worldNormal;
+        pVars["gMatDif"] = materialDiffuse;
+        pVars["gMatSpec"] = materialSpecRough;
+        pVars["gMatExtra"] = materialExtraParams;
+        pVars["gMatEmissive"] = materialEmissive;
+    }
+
+    // Launch and trace rays.
+    mpRays->execute(pRenderContext, mpResManager->getScreenSize());
+}
