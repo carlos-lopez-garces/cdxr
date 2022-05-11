@@ -68,7 +68,9 @@ void RayTracedAmbientOcclusionPass::execute(RenderContext *pRenderContext) {
 	rayGenVars["RayGenCB"]["gAoRadius"] = mAoRadius;
 	// Retrived from the UI.
 	rayGenVars["RayGenCB"]["gMinT"] = mpResManager->getMinTDist();
-	rayGenVars["RayGenCB"]["gNumRays"] = mNumRaysPerPixel;
+	// mNumRaysPerPixel is int32_t instead of uint32_t because the Falcor::Gui doesn't
+	// have addUIntVar() only addIntVar().
+	rayGenVars["RayGenCB"]["gNumRays"] = (uint32_t) mNumRaysPerPixel;
 	// G-Buffer.
 	rayGenVars["gPos"] = mpResManager->getTexture("WorldPosition");
 	rayGenVars["gNorm"] = mpResManager->getTexture("WorldNormal");
@@ -76,3 +78,14 @@ void RayTracedAmbientOcclusionPass::execute(RenderContext *pRenderContext) {
 
 	mpRayTracer->execute(pRenderContext, mpResManager->getScreenSize());
 }
+
+void RayTracedAmbientOcclusionPass::renderGui(Gui* pGui) {
+    int dirty = 0;
+    dirty |= (int)pGui->addFloatVar("AO radius", mAoRadius, 1e-4f, 1e38f, mAoRadius * 0.01f);
+	dirty |= (int)pGui->addIntVar("Num AO Rays", mNumRaysPerPixel, 1, 64);
+
+    if (dirty) {
+		setRefreshFlag();
+	}
+}
+

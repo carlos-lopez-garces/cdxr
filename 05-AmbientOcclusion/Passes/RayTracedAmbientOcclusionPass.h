@@ -11,13 +11,14 @@ protected:
     float mAoRadius = 0.0f;
     // Used as initialization seed for the PRNG.
     uint32_t mFrameCount = 0;
-    uint32_t mNumRaysPerPixel = 1;
+    int32_t mNumRaysPerPixel = 1;
 
     RayTracedAmbientOcclusionPass() : RenderPass("Ray Traced Ambient Occlusion", "Ray Traced Ambient Occlusion Options") {}
 
     bool initialize(RenderContext *pRenderContext, ResourceManager::SharedPtr pResManager) override;
     void initScene(RenderContext *pRenderContext, Falcor::Scene::SharedPtr pScene) override;
     void execute(RenderContext *pRenderContext) override;
+    void renderGui(Gui* pGui) override;
 
     bool requiresScene() override {
         return true;
