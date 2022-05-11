@@ -21,8 +21,8 @@
     <ClCompile Include="..\SharedUtils\ResourceManager.cpp" />
     <ClCompile Include="..\SharedUtils\SceneLoaderWrapper.cpp" />
     <ClCompile Include="..\SharedUtils\SimpleVars.cpp" />
-    <ClCompile Include="Passes\AmbientOcclusionPass.cpp" />
-    <ClCompile Include="Tutor05-AmbientOcclusion.cpp" />
+    <ClCompile Include="Passes\RayTracedAmbientOcclusionPass.cpp" />
+    <ClCompile Include="AmbientOcclusion.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\CommonPasses\CopyToOutputPass.h" />
@@ -35,13 +35,7 @@
     <ClInclude Include="..\SharedUtils\ResourceManager.h" />
     <ClInclude Include="..\SharedUtils\SceneLoaderWrapper.h" />
     <ClInclude Include="..\SharedUtils\SimpleVars.h" />
-    <ClInclude Include="Passes\AmbientOcclusionPass.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Data\Tutorial05\aoTracing.rt.hlsl">
-      <FileType>Document</FileType>
-    </None>
-    <None Include="Data\Tutorial05\hlslUtils.hlsli" />
+    <ClInclude Include="Passes\RayTracedAmbientOcclusionPass.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Falcor\Framework\FalcorSharedObjects\FalcorSharedObjects.vcxproj">
@@ -50,6 +44,11 @@
     <ProjectReference Include="..\Falcor\Framework\Source\Falcor.vcxproj">
       <Project>{3b602f0e-3834-4f73-b97d-7dfc91597a98}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Data\Shaders\AoTracing.rt.hlsl" />
+    <None Include="Data\Shaders\PRNG.hlsli" />
+    <None Include="Data\Shaders\Sampling.hlsli" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{134A832F-CAA2-409D-83B8-A8BA9ECBC0FF}</ProjectGuid>

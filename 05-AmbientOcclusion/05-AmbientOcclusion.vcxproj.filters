@@ -33,7 +33,7 @@
     <ClInclude Include="..\CommonPasses\CopyToOutputPass.h">
       <Filter>CommonPasses</Filter>
     </ClInclude>
-    <ClInclude Include="Passes\AmbientOcclusionPass.h">
+    <ClInclude Include="Passes\RayTracedAmbientOcclusionPass.h">
       <Filter>Passes</Filter>
     </ClInclude>
     <ClInclude Include="..\SharedUtils\FullscreenLaunch.h">
@@ -62,14 +62,14 @@
     <ClCompile Include="..\SharedUtils\SimpleVars.cpp">
       <Filter>SharedUtils</Filter>
     </ClCompile>
-    <ClCompile Include="Tutor05-AmbientOcclusion.cpp" />
+    <ClCompile Include="AmbientOcclusion.cpp" />
     <ClCompile Include="..\CommonPasses\SimpleGBufferPass.cpp">
       <Filter>CommonPasses</Filter>
     </ClCompile>
     <ClCompile Include="..\CommonPasses\CopyToOutputPass.cpp">
       <Filter>CommonPasses</Filter>
     </ClCompile>
-    <ClCompile Include="Passes\AmbientOcclusionPass.cpp">
+    <ClCompile Include="Passes\RayTracedAmbientOcclusionPass.cpp">
       <Filter>Passes</Filter>
     </ClCompile>
     <ClCompile Include="..\SharedUtils\FullscreenLaunch.cpp">
@@ -86,10 +86,15 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Data\Tutorial05\hlslUtils.hlsli">
+    <FxCompile Include="Data\Shaders\AoTracing.rt.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Data\Shaders\PRNG.hlsli">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Data\Tutorial05\aoTracing.rt.hlsl">
+    <None Include="Data\Shaders\Sampling.hlsli">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
