@@ -101,3 +101,12 @@ void AoRayGen () {
 void AoMiss(inout AoRayPayload payload) {
 	payload.aoValue = 1.0f;
 }
+
+[shader("anyhit")]
+void AoAnyHit(inout AoRayPayload payload, BuiltInTriangleIntersectionAttributes attributes) {
+	if (alphaTestFails(attributes)) {
+        // The intersected geometry is transparent. Acceleration structure traversal
+        // resumes after IgnoreHit().
+        IgnoreHit();   
+    }
+}
