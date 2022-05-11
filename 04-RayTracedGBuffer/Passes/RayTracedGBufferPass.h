@@ -24,8 +24,20 @@ protected:
 
     void initScene(RenderContext* pRenderContext, Scene::SharedPtr pScene) override;
 
+    bool requiresScene() override {
+        return true;
+    }
+
+	bool usesRayTracing() override {
+        return true;
+    }
+
 public:
+    using SharedPtr = std::shared_ptr<RayTracedGBufferPass>;
+
     static SharedPtr create() {
         return SharedPtr(new RayTracedGBufferPass());
     }
+
+    virtual ~RayTracedGBufferPass() = default;
 };
