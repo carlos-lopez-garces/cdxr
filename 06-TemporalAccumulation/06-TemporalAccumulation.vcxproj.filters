@@ -27,13 +27,7 @@
     <ClInclude Include="..\SharedUtils\SimpleVars.h">
       <Filter>SharedUtils</Filter>
     </ClInclude>
-    <ClInclude Include="..\CommonPasses\SimpleGBufferPass.h">
-      <Filter>CommonPasses</Filter>
-    </ClInclude>
-    <ClInclude Include="..\CommonPasses\AmbientOcclusionPass.h">
-      <Filter>CommonPasses</Filter>
-    </ClInclude>
-    <ClInclude Include="Passes\SimpleAccumulationPass.h">
+    <ClInclude Include="Passes\TemporalAccumulationPass.h">
       <Filter>Passes</Filter>
     </ClInclude>
     <ClInclude Include="..\SharedUtils\FullscreenLaunch.h">
@@ -47,6 +41,12 @@
     </ClInclude>
     <ClInclude Include="..\SharedUtils\RenderPass.h">
       <Filter>SharedUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\05-AmbientOcclusion\Passes\RayTracedAmbientOcclusionPass.h">
+      <Filter>Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\03-RasterGBuffer\Passes\SimpleGBufferPass.h">
+      <Filter>Passes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -62,14 +62,8 @@
     <ClCompile Include="..\SharedUtils\SimpleVars.cpp">
       <Filter>SharedUtils</Filter>
     </ClCompile>
-    <ClCompile Include="..\CommonPasses\SimpleGBufferPass.cpp">
-      <Filter>CommonPasses</Filter>
-    </ClCompile>
-    <ClCompile Include="Tutor06-TemporalAccumulation.cpp" />
-    <ClCompile Include="..\CommonPasses\AmbientOcclusionPass.cpp">
-      <Filter>CommonPasses</Filter>
-    </ClCompile>
-    <ClCompile Include="Passes\SimpleAccumulationPass.cpp">
+    <ClCompile Include="TemporalAccumulation.cpp" />
+    <ClCompile Include="Passes\TemporalAccumulationPass.cpp">
       <Filter>Passes</Filter>
     </ClCompile>
     <ClCompile Include="..\SharedUtils\FullscreenLaunch.cpp">
@@ -84,10 +78,14 @@
     <ClCompile Include="..\SharedUtils\RenderPass.cpp">
       <Filter>SharedUtils</Filter>
     </ClCompile>
+    <ClCompile Include="..\05-AmbientOcclusion\Passes\RayTracedAmbientOcclusionPass.cpp">
+      <Filter>Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\03-RasterGBuffer\Passes\SimpleGBufferPass.cpp">
+      <Filter>Passes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Data\Tutorial06\accumulate.ps.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
+    <None Include="Data\Shaders\Accumulation.ps.hlsl" />
   </ItemGroup>
 </Project>

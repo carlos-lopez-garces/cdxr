@@ -1,17 +1,17 @@
-#include "AccumulationPass.h"
+#include "TemporalAccumulationPass.h"
 
 namespace {
     const char *kAccumShader = "Shaders\\Accumulation.ps.hlsl";
 };
 
-AccumulationPass::SharedPtr AccumulationPass::create(const std::string &accumulationBuffer) {
-    return SharedPtr(new AccumulationPass(accumulationBuffer));
+TemporalAccumulationPass::SharedPtr TemporalAccumulationPass::create(const std::string &accumulationBuffer) {
+    return SharedPtr(new TemporalAccumulationPass(accumulationBuffer));
 }
 
-bool AccumulationPass::initialize(RenderContext *pRenderContext, ResourceManager::SharedPtr pResManager) {
+bool TemporalAccumulationPass::initialize(RenderContext *pRenderContext, ResourceManager::SharedPtr pResManager) {
     mpResManager = pResManager;
     // Request a single texture of default format (RGBA32Float) and default size (screen sized).
-    // The AccumulationPass accumulates multiple frames' data in this texture.
+    // The TemporalAccumulationPass accumulates multiple frames' data in this texture.
     mpResManager->requestTextureResource(mAccumChannel);
 
     mpResManager->setDefaultSceneName("Data/pink_room/pink_room.fscene");
@@ -22,4 +22,14 @@ bool AccumulationPass::initialize(RenderContext *pRenderContext, ResourceManager
     mpAccumShader = FullscreenLaunch::create(kAccumShader);
 
     return true;
+}
+
+void TemporalAccumulationPass::initScene(RenderContext *pRenderContext, Falcor::Scene::SharedPtr pScene) {
+    // Reset some state because a new scene is going to be laoded.
+    mNumFramesAccum = 0;
+
+    mpScene = pScene;
+    if (mpScene && mpScene->getActiveCamera()) {
+        mpLastCameraMatrix = mpScene->getActiveCamera()->getViewMatrix();
+    } 
 }

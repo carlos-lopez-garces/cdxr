@@ -11,8 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\CommonPasses\AmbientOcclusionPass.cpp" />
-    <ClCompile Include="..\CommonPasses\SimpleGBufferPass.cpp" />
+    <ClCompile Include="..\03-RasterGBuffer\Passes\SimpleGBufferPass.cpp" />
+    <ClCompile Include="..\05-AmbientOcclusion\Passes\RayTracedAmbientOcclusionPass.cpp" />
     <ClCompile Include="..\SharedUtils\FullscreenLaunch.cpp" />
     <ClCompile Include="..\SharedUtils\RasterLaunch.cpp" />
     <ClCompile Include="..\SharedUtils\RayLaunch.cpp" />
@@ -21,12 +21,12 @@
     <ClCompile Include="..\SharedUtils\ResourceManager.cpp" />
     <ClCompile Include="..\SharedUtils\SceneLoaderWrapper.cpp" />
     <ClCompile Include="..\SharedUtils\SimpleVars.cpp" />
-    <ClCompile Include="Passes\SimpleAccumulationPass.cpp" />
-    <ClCompile Include="Tutor06-TemporalAccumulation.cpp" />
+    <ClCompile Include="Passes\TemporalAccumulationPass.cpp" />
+    <ClCompile Include="TemporalAccumulation.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\CommonPasses\AmbientOcclusionPass.h" />
-    <ClInclude Include="..\CommonPasses\SimpleGBufferPass.h" />
+    <ClInclude Include="..\03-RasterGBuffer\Passes\SimpleGBufferPass.h" />
+    <ClInclude Include="..\05-AmbientOcclusion\Passes\RayTracedAmbientOcclusionPass.h" />
     <ClInclude Include="..\SharedUtils\FullscreenLaunch.h" />
     <ClInclude Include="..\SharedUtils\RasterLaunch.h" />
     <ClInclude Include="..\SharedUtils\RayLaunch.h" />
@@ -35,12 +35,7 @@
     <ClInclude Include="..\SharedUtils\ResourceManager.h" />
     <ClInclude Include="..\SharedUtils\SceneLoaderWrapper.h" />
     <ClInclude Include="..\SharedUtils\SimpleVars.h" />
-    <ClInclude Include="Passes\SimpleAccumulationPass.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Data\Tutorial06\accumulate.ps.hlsl">
-      <FileType>Document</FileType>
-    </None>
+    <ClInclude Include="Passes\TemporalAccumulationPass.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Falcor\Framework\FalcorSharedObjects\FalcorSharedObjects.vcxproj">
@@ -49,6 +44,9 @@
     <ProjectReference Include="..\Falcor\Framework\Source\Falcor.vcxproj">
       <Project>{3b602f0e-3834-4f73-b97d-7dfc91597a98}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Data\Shaders\Accumulation.ps.hlsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{0822798C-F755-436A-9FA2-9E0A9165535B}</ProjectGuid>
