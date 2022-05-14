@@ -10,7 +10,11 @@ protected:
     std::string mAccumChannel;
 
     // Number of frames that have been accumulated so far. It gets restarted every time the
-    // camera moves or when a new scene is loaded.
+    // camera moves or when a new scene is loaded. This counter acts as the weight of the
+    // contribution of the accumulated value to the new frame; when it's reset to 0, the
+    // accumulated value's contribution to the new presented frame becomes 0 (while the
+    // weight of the frame from the previous pass continues to be 1), effectively restarting
+    // the accumulation.
     uint32_t mNumFramesAccum;
     
     Falcor::Scene::SharedPtr mpScene;
@@ -33,7 +37,7 @@ protected:
 
     bool mDoAccumulation;
 
-    TemporalAccumulationPass(const std::string &accumulationBuffer) : RenderPass("Accumulation Pass", "Accumulation Pass Options") {
+    TemporalAccumulationPass(const std::string &accumulationBuffer) : RenderPass("Temporal Accumulation Pass", "Temporal Accumulation Pass Options") {
         mAccumChannel = accumulationBuffer;
     };
 
@@ -43,6 +47,12 @@ protected:
     void initScene(RenderContext *pRenderContext, Falcor::Scene::SharedPtr pScene) override;
 
     void execute(RenderContext *pRenderContext) override;
+
+    void stateRefreshed() override;
+
+    void resize(uint32_t width, uint32_t height) override;
+
+    void renderGui(Gui* pGui) override;
 
     // Temporal accumulation starts over when the camera moves. 
     bool hasCameraMoved();
