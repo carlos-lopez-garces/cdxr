@@ -2,11 +2,11 @@
 #include "JitteredGBufferPass.h"
 
 namespace {
-    const char *kGbufVertexShader = "CommonPasses\\gBuffer.vs.hlsl";
-    const char *kGbufPixelShader = "CommonPasses\\gBuffer.ps.hlsl";
+    const char *kGbufVertexShader = "Shaders\\GBuffer.vs.hlsl";
+    const char *kGbufPixelShader = "Shaders\\GBuffer.ps.hlsl";
 }
 
-bool JitteredGBufferPass::initialize(RenderContext *pPenderContext, ResourceManager::SharedPtr pResManager) {
+bool JitteredGBufferPass::initialize(RenderContext *pRenderContext, ResourceManager::SharedPtr pResManager) {
     mpResManager = pResManager;
 
     // Default format RGBA32Float and screen-sized.
@@ -38,4 +38,37 @@ bool JitteredGBufferPass::initialize(RenderContext *pPenderContext, ResourceMana
     mPRNG = std::mt19937(uint32_t(timeInMilliSecs.time_since_epoch().count()));
 
     return true;
+}
+
+void JitteredGBufferPass::execute(RenderContext *pRenderContext) {
+    Falcor::Fbo::SharedPtr outputFbo = mpResManager->createManagedFbo(
+        {
+            "WorldPosition",
+            "WorldNormal",
+            "MaterialDiffuse",
+            "MaterialSpecRough",
+            "MaterialExtraParams"
+        },
+        "Z-Buffer"
+    );
+
+    if (!outputFbo) {
+        return;
+    }
+
+    if (mUseJitter && mpScene && mpScene->getActiveCamera()) {
+        mFrameCount++;
+
+        // Jitter the camera with random subpixel offsets of size up to half a pixel.
+        float xJitter = mRNGDistribution(mPRNG) - 0.5f;
+        float xSubpixelOffset = xJitter / float(outputFbo->getWidth());
+        float yJitter = mRNGDistribution(mPRNG) - 0.5f;
+        float ySubpixelOffset = yJitter / float(outputFbo->getHeight());
+        mpScene->getActiveCamera()->setJitter(xSubpixelOffset, ySubpixelOffset);
+    }
+
+    pRenderContext->clearFbo(outputFbo.get(), vec4(0, 0, 0, 0), 1.0f, 0);
+    pRenderContext->clearUAV(outputFbo->getColorTexture(2)->getUAV().get(), vec4(mBgColor, 1.0f));
+
+    mpRasterizer->execute(pRenderContext, mpGfxState, outputFbo);
 }
