@@ -11,8 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\CommonPasses\AmbientOcclusionPass.cpp" />
-    <ClCompile Include="..\CommonPasses\SimpleAccumulationPass.cpp" />
+    <ClCompile Include="..\05-AmbientOcclusion\Passes\RayTracedAmbientOcclusionPass.cpp" />
+    <ClCompile Include="..\06-TemporalAccumulation\Passes\TemporalAccumulationPass.cpp" />
     <ClCompile Include="..\SharedUtils\FullscreenLaunch.cpp" />
     <ClCompile Include="..\SharedUtils\RasterLaunch.cpp" />
     <ClCompile Include="..\SharedUtils\RayLaunch.cpp" />
@@ -21,12 +21,12 @@
     <ClCompile Include="..\SharedUtils\ResourceManager.cpp" />
     <ClCompile Include="..\SharedUtils\SceneLoaderWrapper.cpp" />
     <ClCompile Include="..\SharedUtils\SimpleVars.cpp" />
+    <ClCompile Include="JitteredGBufferAntialiasing.cpp" />
     <ClCompile Include="Passes\JitteredGBufferPass.cpp" />
-    <ClCompile Include="Tutor07-SimpleAntialiasing.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\CommonPasses\AmbientOcclusionPass.h" />
-    <ClInclude Include="..\CommonPasses\SimpleAccumulationPass.h" />
+    <ClInclude Include="..\05-AmbientOcclusion\Passes\RayTracedAmbientOcclusionPass.h" />
+    <ClInclude Include="..\06-TemporalAccumulation\Passes\TemporalAccumulationPass.h" />
     <ClInclude Include="..\SharedUtils\FullscreenLaunch.h" />
     <ClInclude Include="..\SharedUtils\RasterLaunch.h" />
     <ClInclude Include="..\SharedUtils\RayLaunch.h" />
@@ -38,19 +38,23 @@
     <ClInclude Include="Passes\JitteredGBufferPass.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Falcor\Framework\FalcorSharedObjects\FalcorSharedObjects.vcxproj">
+    <ProjectReference Include="..\Falcor3.1\Framework\FalcorSharedObjects\FalcorSharedObjects.vcxproj">
       <Project>{2c535635-e4c5-4098-a928-574f0e7cd5f9}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\Falcor\Framework\Source\Falcor.vcxproj">
+    <ProjectReference Include="..\Falcor3.1\Framework\Source\Falcor.vcxproj">
       <Project>{3b602f0e-3834-4f73-b97d-7dfc91597a98}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Data\Shaders\GBuffer.ps.hlsl" />
+    <None Include="Data\Shaders\GBuffer.vs.hlsl" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E4D14A10-149D-40A6-9D85-91A3D8730E1F}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>DXRT</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>07-SimpleAntialiasing</ProjectName>
+    <ProjectName>07-JitteredGBufferAntialiasing</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -70,10 +74,10 @@
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <Import Project="..\Falcor\Framework\Source\Falcor.props" />
+    <Import Project="..\Falcor3.1\Framework\Source\Falcor.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <Import Project="..\Falcor\Framework\Source\Falcor.props" />
+    <Import Project="..\Falcor3.1\Framework\Source\Falcor.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
