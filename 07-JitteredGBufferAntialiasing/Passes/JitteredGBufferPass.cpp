@@ -72,3 +72,21 @@ void JitteredGBufferPass::execute(RenderContext *pRenderContext) {
 
     mpRasterizer->execute(pRenderContext, mpGfxState, outputFbo);
 }
+
+void JitteredGBufferPass::initScene(RenderContext* pRenderContext, Scene::SharedPtr pScene) {
+	if (pScene) {
+        mpScene = pScene;
+    }
+
+	if (mpRasterizer) {
+        mpRasterizer->setScene(mpScene);
+    }
+}
+
+void JitteredGBufferPass::renderGui(Gui* pGui) {
+	int dirty = 0;
+
+	dirty |= (int)pGui->addCheckBox(mUseJitter ? "Camera jitter enabled" : "Camera jitter disabled", mUseJitter);
+
+	if (dirty) setRefreshFlag();
+}
