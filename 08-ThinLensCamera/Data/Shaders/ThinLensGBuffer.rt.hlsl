@@ -2,8 +2,8 @@
 import Raytracing;
 import ShaderCommon;
 import Shading;
-#include "../../05-AmbientOcclusion/Data/Shaders/PRNG.hlsli"
-#include "../../05-AmbientOcclusion/Data/Shaders/AlphaTest.hlsli"
+#include "PRNG.hlsli"
+#include "AlphaTesting.hlsli"
 
 // G-Buffer.
 RWTexture2D<float4> gWsPos;
@@ -14,6 +14,9 @@ RWTexture2D<float4> gMatExtra;
 
 cbuffer RayGenCB {
 	float2 gPixelJitter;
+	float gFocalLength;
+	float gLensRadius;
+	uint gFrameCount;
 };
 
 struct RayPayload {
@@ -39,12 +42,12 @@ void ThinLensGBufferRayGen() {
 
 	// Map pixelCenter to [-1,1]x[1,-1]. Note that before the y-coordinate transformation, the image is
 	// upside-down.  
-	float ndc = float2(2, -2) * pixelCenter + float2(-1, 1);
+	float2 ndc = float2(2, -2) * pixelCenter + float2(-1, 1);
 
-	// The view space basis is (gCamera.cameraU, gCamera.cameraV, gCamera.gCameraW). The primary ray's
+	// The view space basis is (gCamera.cameraU, gCamera.cameraV, gCamera.cameraW). The primary ray's
 	// direction is a linear combination of this basis with coefficients given by the pixel center's
 	// NDC coordinates.
-	float3 worldSpaceRayDir = ndc.x*gCamera.cameraU + ndc.y*gCamera.cameraV + gCamera.gCameraW;
+	float3 worldSpaceRayDir = ndc.x*gCamera.cameraU + ndc.y*gCamera.cameraV + gCamera.cameraW;
 
 	// Dividing by length(gCamera.cameraW) doesn't change the direction of worldSpaceRayDir, it just
 	// shortens the vector, making worldSpaceRayDir have length 1 in the camera's w-axis.
@@ -102,9 +105,8 @@ void PrimaryClosestHit(inout RayPayload payload, BuiltInTriangleIntersectionAttr
 	// Supplied by Falcor.
 	ShadingData shadeData = prepareShadingData(vsOut, gMaterial, gCamera.posW, 0);
 
-	gWsPos[pixelIndex] = float4(shadeData.posW, 1.f);
-	// Includes distance from the camera's origin to the intersection point.
-	gWsNorm[pixelIndex] = float4(shadeData.N, length(shadeData.posW, - gCamera.posW));
+	gWsPos[pixelIndex] = float4(shadeData.posW, 1.0f);
+	gWsNorm[pixelIndex] = float4(shadeData.N, 0.0f);
 	gMatDif[pixelIndex] = float4(shadeData.diffuse, shadeData.opacity);
 	gMatSpec[pixelIndex] = float4(shadeData.specular, shadeData.linearRoughness);
 	// Includes Index of Refraction and whether the material is double-sided.

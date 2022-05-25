@@ -23,11 +23,11 @@ protected:
     float mFocalLength = 1.0f;
     float mFNumber = 32.0f;
 
-    vec4 mBgColor;
+    vec3 mBgColor = vec3(0.5f, 0.5f, 1.0f);
 
-    uint mFrameCount = 0;
+    uint mFrameCount = 0xdeadbeef;
 
-    ThinLensGBufferPass() : ::RenderPass("Thin Lens Camera", "Thin Lens Camera Options") {}
+    ThinLensGBufferPass() : ::RenderPass("Thin Lens Camera", "Camera Settings") {}
 
     bool initialize(Falcor::RenderContext *pRenderContext, ResourceManager::SharedPtr pResManager) override;
 

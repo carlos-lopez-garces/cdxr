@@ -97,12 +97,4 @@
       <Filter>Passes</Filter>
     </ClCompile>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="Data\Tutorial08\thinLensUtils.hlsli">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Data\Tutorial08\thinLensGBuffer.rt.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
-  </ItemGroup>
 </Project>

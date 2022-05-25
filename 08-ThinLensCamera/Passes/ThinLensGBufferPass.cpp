@@ -3,10 +3,10 @@
 
 namespace {
     // Shader.
-    const char *kFileRayTrace = "Shaders\\ThinLensGBuffer.rt.hlsl";
+    const char *kShaderFile = "Shaders\\ThinLensGBuffer.rt.hlsl";
 
     // Shader entrypoints;
-    const char* kEntryPointRayGen = "GBufferRayGen";
+    const char* kEntryPointRayGen = "ThinLensGBufferRayGen";
 	const char* kEntryPointMiss0 = "PrimaryMiss";
 	const char* kEntryPrimaryAnyHit = "PrimaryAnyHit";
 	const char* kEntryPrimaryClosestHit = "PrimaryClosestHit";
@@ -24,9 +24,9 @@ bool ThinLensGBufferPass::initialize(Falcor::RenderContext *pRenderContext, Reso
     mpResManager->setDefaultSceneName("Scenes\\PinkRoom\\pink_room.fscene");
 
     // Set up the ray tracer.
-    mpRayTracer = RayLaunch::create(kFileRayTrace, kEntryPointRayGen);
-    mpRayTracer->addMissShader(kFileRayTrace, kEntryPointMiss0);
-    mpRayTracer->addHitShader(kFileRayTrace, kEntryPrimaryClosestHit, kEntryPrimaryAnyHit);
+    mpRayTracer = RayLaunch::create(kShaderFile, kEntryPointRayGen);
+    mpRayTracer->addMissShader(kShaderFile, kEntryPointMiss0);
+    mpRayTracer->addHitShader(kShaderFile, kEntryPrimaryClosestHit, kEntryPrimaryAnyHit);
     mpRayTracer->compileRayProgram();
     if (mpScene) {
         mpRayTracer->setScene(mpScene);
@@ -43,7 +43,7 @@ bool ThinLensGBufferPass::initialize(Falcor::RenderContext *pRenderContext, Reso
 }
 
 void ThinLensGBufferPass::execute(Falcor::RenderContext *pRenderContext) {
-    if (!mpRayTracer || mpRayTracer->readyToRender()) {
+    if (!mpRayTracer || !mpRayTracer->readyToRender()) {
         return;
     }
 
@@ -78,8 +78,6 @@ void ThinLensGBufferPass::execute(Falcor::RenderContext *pRenderContext) {
     missVars["gMatDif"] = materialDiffuse;
 
     if (mUseJitter && mpScene && mpScene->getActiveCamera()) {
-        mFrameCount++;
-
         // Jitter the camera with random subpixel offsets of size up to half a pixel.
         float xJitter = mRNGDistribution(mPRNG) - 0.5f;
         // The size of the viewport can be gotten from any of the G-Buffers.
@@ -105,23 +103,15 @@ void ThinLensGBufferPass::initScene(RenderContext* pRenderContext, Scene::Shared
 void ThinLensGBufferPass::renderGui(Gui* pGui) {
 	int dirty = 0;
 
-	pGui->addText("When using the thin lens, you can specify");
-	pGui->addText("the f-number and distance to the focal");
-	pGui->addText("plane (units are same as the scene file).");
-	pGui->addText("Note:  our f-number may feel incorrect,");
-	pGui->addText("as our scene files do not have consistent");
-	pGui->addText("units for measurement.");
-	pGui->addText("");
-
-	dirty |= (int)pGui->addCheckBox(mUseThinLens ? "Using thin lens model" : "Using pinhole camera model", mUseThinLens);
+	dirty |= (int)pGui->addCheckBox(mUseThinLens ? "Thin lens camera" : "Pinhole camera", mUseThinLens);
 	if (mUseThinLens) { 
 		pGui->addText("     ");
-		dirty |= (int)pGui->addFloatVar("f number", mFNumber, 1.0f, 128.0f, 0.01f, true);
+        dirty |= (int)pGui->addFloatVar("Focal length", mFocalLength, 0.01f, FLT_MAX, 0.01f, true);
 		pGui->addText("     ");
-		dirty |= (int)pGui->addFloatVar("f dist", mFocalLength, 0.01f, FLT_MAX, 0.01f, true);
+        dirty |= (int)pGui->addFloatVar("f-number", mFNumber, 1.0f, 128.0f, 0.01f, true);
 	}
 
-	dirty |= (int)pGui->addCheckBox(mUseJitter ? "Using camera jitter" : "No camera jitter", mUseJitter);
+	dirty |= (int)pGui->addCheckBox(mUseJitter ? "Jitter" : "No jitter", mUseJitter);
 
 	if (dirty) {
         setRefreshFlag();

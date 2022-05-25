@@ -42,12 +42,6 @@
     <ClInclude Include="Passes\ThinLensGBufferPass.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Data\Tutorial08\thinLensUtils.hlsli" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Data\Tutorial08\thinLensGBuffer.rt.hlsl" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Falcor3.1\Framework\FalcorSharedObjects\FalcorSharedObjects.vcxproj">
       <Project>{2c535635-e4c5-4098-a928-574f0e7cd5f9}</Project>
     </ProjectReference>
