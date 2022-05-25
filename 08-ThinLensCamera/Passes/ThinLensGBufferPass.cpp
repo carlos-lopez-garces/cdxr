@@ -41,3 +41,56 @@ bool ThinLensGBufferPass::initialize(Falcor::RenderContext *pRenderContext, Reso
     setGuiSize(ivec2(250, 300));
     return true;
 }
+
+void ThinLensGBufferPass::execute(Falcor::RenderContext *pRenderContext) {
+    if (!mpRayTracer || mpRayTracer->readyToRender()) {
+        return;
+    }
+
+    mLensRadius = mFocalLength / (2.0f * mFNumber);
+
+    // Load G-Buffer textures.
+    Falcor::Texture::SharedPtr worldSpacePosition = mpResManager->getClearedTexture("WorldPosition", vec4(0, 0, 0, 0));
+    Falcor::Texture::SharedPtr worldSpaceNormal = mpResManager->getClearedTexture("WorldNormal", vec4(0, 0, 0, 0));
+    Falcor::Texture::SharedPtr materialDiffuse = mpResManager->getClearedTexture("MaterialDiffuse", vec4(0, 0, 0, 0));
+    Falcor::Texture::SharedPtr materialSpecularRoughness = mpResManager->getClearedTexture("MatSpecRough", vec4(0, 0, 0, 0));
+    Falcor::Texture::SharedPtr materialExtraParams = mpResManager->getClearedTexture("MaterialExtraParams", vec4(0, 0, 0, 0));
+
+    // Lens parameters are relevant when computing primary ray origins, so they go in the ray
+    // generation shader.
+    auto rayGenVars = mpRayTracer->getRayGenVars();
+    rayGenVars["RayGenCB"]["gFrameCount"] = mFrameCount++;
+    rayGenVars["RayGenCB"]["gLensRadius"] = mUseThinLens ? mLensRadius : 0.0f;
+    rayGenVars["RayGenCB"]["gFocalLength"] = mFocalLength;
+
+    // Set up variables for all hit shaders.
+    for (auto hitVars : mpRayTracer->getHitVars(0)) {
+        hitVars["gWsPos"] = worldSpacePosition;
+		hitVars["gWsNorm"] = worldSpaceNormal;
+		hitVars["gMatDif"] = materialDiffuse;
+		hitVars["gMatSpec"] = materialSpecularRoughness;
+		hitVars["gMatExtra"] = materialExtraParams;
+    }
+
+    auto missVars = mpRayTracer->getMissVars(0);
+    // Color sampled by all rays that escape the scene without hitting anything. Constant buffer.
+    missVars["MissShaderCB"]["gBgColor"] = mBgColor;
+    missVars["gMatDif"] = materialDiffuse;
+
+    if (mUseJitter && mpScene && mpScene->getActiveCamera()) {
+        mFrameCount++;
+
+        // Jitter the camera with random subpixel offsets of size up to half a pixel.
+        float xJitter = mRNGDistribution(mPRNG) - 0.5f;
+        // The size of the viewport can be gotten from any of the G-Buffers.
+        float xSubpixelOffset = xJitter / float(worldSpacePosition->getWidth());
+        float yJitter = mRNGDistribution(mPRNG) - 0.5f;
+        float ySubpixelOffset = yJitter / float(worldSpacePosition->getHeight());
+        mpScene->getActiveCamera()->setJitter(xSubpixelOffset, ySubpixelOffset);
+
+        // Just the jitter size, not the subpixel offset.
+        rayGenVars["RayGenCB"]["gPixelJitter"] = vec2(xJitter, yJitter);
+    }
+
+    mpRayTracer->execute(pRenderContext, mpResManager->getScreenSize());
+}

@@ -12,10 +12,26 @@ protected:
 
     // Mersenne Twister pseudo-random generator of 32-bit numbers with a state size of 19937 bits.
     std::mt19937 mPRNG;
+    std::uniform_real_distribution<float> mRNGDistribution;
+    bool mUseJitter;
+
+    // Lens configuration.
+    //
+    // Use a pinhole camera by default or a thin lens approximation if true.
+    bool mUseThinLens = false;
+    float mLensRadius;
+    float mFocalLength = 1.0f;
+    float mFNumber = 32.0f;
+
+    vec4 mBgColor;
+
+    uint mFrameCount = 0;
 
     ThinLensGBufferPass() : ::RenderPass("Thin Lens Camera", "Thin Lens Camera Options") {}
 
     bool initialize(Falcor::RenderContext *pRenderContext, ResourceManager::SharedPtr pResManager) override;
+
+    void execute(Falcor::RenderContext *pRenderContext) override;
 
 public:
     using SharedPtr = std::shared_ptr<ThinLensGBufferPass>;
