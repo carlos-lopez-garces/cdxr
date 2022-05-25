@@ -11,8 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\05-AmbientOcclusion\Passes\RayTracedAmbientOcclusionPass.cpp" />
     <ClCompile Include="..\06-TemporalAccumulation\Passes\TemporalAccumulationPass.cpp" />
-    <ClCompile Include="..\07-JitteredGBufferAntialiasing\Passes\JitteredGBufferPass.cpp" />
     <ClCompile Include="..\CommonPasses\AmbientOcclusionPass.cpp" />
     <ClCompile Include="..\CommonPasses\SimpleAccumulationPass.cpp" />
     <ClCompile Include="..\SharedUtils\FullscreenLaunch.cpp" />
@@ -27,8 +27,8 @@
     <ClCompile Include="ThinLensCamera.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\05-AmbientOcclusion\Passes\RayTracedAmbientOcclusionPass.h" />
     <ClInclude Include="..\06-TemporalAccumulation\Passes\TemporalAccumulationPass.h" />
-    <ClInclude Include="..\07-JitteredGBufferAntialiasing\Passes\JitteredGBufferPass.h" />
     <ClInclude Include="..\CommonPasses\AmbientOcclusionPass.h" />
     <ClInclude Include="..\CommonPasses\SimpleAccumulationPass.h" />
     <ClInclude Include="..\SharedUtils\FullscreenLaunch.h" />
