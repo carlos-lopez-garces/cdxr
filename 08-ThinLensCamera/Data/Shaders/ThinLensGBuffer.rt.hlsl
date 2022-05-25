@@ -4,13 +4,20 @@ import ShaderCommon;
 import Shading;
 #include "../../05-AmbientOcclusion/Data/Shaders/PRNG.hlsli"
 
+// G-Buffer.
+RWTexture2D<float4> gWsPos;
+RWTexture2D<float4> gWsNorm;
+RWTexture2D<float4> gMatDif;
+RWTexture2D<float4> gMatSpec;
+RWTexture2D<float4> gMatExtra;
+
 cbuffer RayGenCB {
 	float2 gPixelJitter;
 };
 
 struct RayPayload {
 	bool dummyValue;
-}; 
+};
 
 [shader("raygeneration")]
 void ThinLensGBufferRayGen() {
@@ -79,4 +86,26 @@ void ThinLensGBufferRayGen() {
 		ray,
 		payload
 	); 
+}
+
+// BuiltInTriangleIntersectionAttributes just contains float2 barycentrics. See 
+// https://docs.microsoft.com/en-us/windows/win32/direct3d12/intersection-attributes.
+[shader("closesthit")]
+void PrimaryClosestHit(inout RayPayload payload, BuiltInTriangleIntersectionAttributes attributes) {
+	uint2 pixelIndex = DispatchRaysIndex().xy;
+
+	// PrimitiveIndex() is an object introspection intrinsic that returns
+    // the identifier of the current primitive.
+	VertexOut vsOut = getVertexAttributes(PrimitiveIndex(), attributes);
+
+	// Supplied by Falcor.
+	ShadingData shadeData = prepareShadingData(vsOut, gMaterial, gCamera.posW, 0);
+
+	gWsPos[pixelIndex] = float4(shadeData.posW, 1.f);
+	// Includes distance from the camera's origin to the intersection point.
+	gWsNorm[pixelIndex] = float4(shadeData.N, length(shadeData.posW, - gCamera.posW));
+	gMatDif[pixelIndex] = float4(shadeData.diffuse, shadeData.opacity);
+	gMatSpec[pixelIndex] = float4(shadeData.specular, shadeData.linearRoughness);
+	// Includes Index of Refraction and whether the material is double-sided.
+	gMatExtra[pixelIndex] = float4(shadeData.IoR, shadeData.doubleSidedMaterial ? 1.f : 0.f, 0.f, 0.f);
 }
