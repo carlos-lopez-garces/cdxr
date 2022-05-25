@@ -49,8 +49,8 @@ void ThinLensGBufferRayGen() {
 	// NDC coordinates.
 	float3 worldSpaceRayDir = ndc.x*gCamera.cameraU + ndc.y*gCamera.cameraV + gCamera.cameraW;
 
-	// Dividing by length(gCamera.cameraW) doesn't change the direction of worldSpaceRayDir, it just
-	// shortens the vector, making worldSpaceRayDir have length 1 in the camera's w-axis.
+	// // Dividing by length(gCamera.cameraW) doesn't change the direction of worldSpaceRayDir, it just
+	// // shortens the vector, making worldSpaceRayDir have length 1 in the camera's w-axis.
 	worldSpaceRayDir /= length(gCamera.cameraW);
 
 	// The origin of the ray is the camera's world-space position and the focal point lies on the line
@@ -63,7 +63,7 @@ void ThinLensGBufferRayGen() {
 	float2 lensSamplePoint = float2(2*PI*nextRand(seed), gLensRadius*nextRand(seed));
 
 	// Move the ray's origin from the world-space position of the camera to the sample point on the lens.
-	float3 rayOriginOnLens = gCamera.posW + lensSamplePoint.x*normalize(gCamera.cameraU) + lensSamplePoint.y*normalize(gCamera.cameraV);
+	float3 rayOriginOnLens = gCamera.posW + lensSamplePoint.y*cos(lensSamplePoint.x)*normalize(gCamera.cameraU) + lensSamplePoint.y*sin(lensSamplePoint.x)*normalize(gCamera.cameraV);
 
 	// The ray.
 	RayDesc ray;
