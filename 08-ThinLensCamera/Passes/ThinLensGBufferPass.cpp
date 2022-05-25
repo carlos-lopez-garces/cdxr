@@ -94,3 +94,36 @@ void ThinLensGBufferPass::execute(Falcor::RenderContext *pRenderContext) {
 
     mpRayTracer->execute(pRenderContext, mpResManager->getScreenSize());
 }
+
+void ThinLensGBufferPass::initScene(RenderContext* pRenderContext, Scene::SharedPtr pScene) {
+	mpScene = std::dynamic_pointer_cast<RtScene>(pScene);
+	if (mpRayTracer) {
+        mpRayTracer->setScene(mpScene);
+    }
+}
+
+void ThinLensGBufferPass::renderGui(Gui* pGui) {
+	int dirty = 0;
+
+	pGui->addText("When using the thin lens, you can specify");
+	pGui->addText("the f-number and distance to the focal");
+	pGui->addText("plane (units are same as the scene file).");
+	pGui->addText("Note:  our f-number may feel incorrect,");
+	pGui->addText("as our scene files do not have consistent");
+	pGui->addText("units for measurement.");
+	pGui->addText("");
+
+	dirty |= (int)pGui->addCheckBox(mUseThinLens ? "Using thin lens model" : "Using pinhole camera model", mUseThinLens);
+	if (mUseThinLens) { 
+		pGui->addText("     ");
+		dirty |= (int)pGui->addFloatVar("f number", mFNumber, 1.0f, 128.0f, 0.01f, true);
+		pGui->addText("     ");
+		dirty |= (int)pGui->addFloatVar("f dist", mFocalLength, 0.01f, FLT_MAX, 0.01f, true);
+	}
+
+	dirty |= (int)pGui->addCheckBox(mUseJitter ? "Using camera jitter" : "No camera jitter", mUseJitter);
+
+	if (dirty) {
+        setRefreshFlag();
+    }
+}

@@ -33,6 +33,10 @@ protected:
 
     void execute(Falcor::RenderContext *pRenderContext) override;
 
+    void ThinLensGBufferPass::initScene(RenderContext* pRenderContext, Scene::SharedPtr pScene) override;
+
+    void ThinLensGBufferPass::renderGui(Gui* pGui) override;
+
 public:
     using SharedPtr = std::shared_ptr<ThinLensGBufferPass>;
 
