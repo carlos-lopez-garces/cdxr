@@ -45,6 +45,15 @@
     <ClInclude Include="..\SharedUtils\RenderPass.h">
       <Filter>SharedUtils</Filter>
     </ClInclude>
+    <ClInclude Include="..\07-JitteredGBufferAntialiasing\Passes\JitteredGBufferPass.h">
+      <Filter>Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\06-TemporalAccumulation\Passes\TemporalAccumulationPass.h">
+      <Filter>Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\SharedUtils\RasterLaunch.h">
+      <Filter>SharedUtils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\SharedUtils\RenderingPipeline.cpp">
@@ -65,7 +74,6 @@
     <ClCompile Include="..\CommonPasses\SimpleAccumulationPass.cpp">
       <Filter>CommonPasses</Filter>
     </ClCompile>
-    <ClCompile Include="Tutor08-ThinLensCamera.cpp" />
     <ClCompile Include="Passes\ThinLensGBufferPass.cpp">
       <Filter>Passes</Filter>
     </ClCompile>
@@ -76,6 +84,16 @@
       <Filter>SharedUtils</Filter>
     </ClCompile>
     <ClCompile Include="..\SharedUtils\RenderPass.cpp">
+      <Filter>SharedUtils</Filter>
+    </ClCompile>
+    <ClCompile Include="ThinLensCamera.cpp" />
+    <ClCompile Include="..\07-JitteredGBufferAntialiasing\Passes\JitteredGBufferPass.cpp">
+      <Filter>Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\06-TemporalAccumulation\Passes\TemporalAccumulationPass.cpp">
+      <Filter>Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\SharedUtils\RasterLaunch.cpp">
       <Filter>SharedUtils</Filter>
     </ClCompile>
   </ItemGroup>
