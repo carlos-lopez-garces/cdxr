@@ -3,6 +3,7 @@ import Raytracing;
 import ShaderCommon;
 import Shading;
 #include "../../05-AmbientOcclusion/Data/Shaders/PRNG.hlsli"
+#include "../../05-AmbientOcclusion/Data/Shaders/AlphaTest.hlsli"
 
 // G-Buffer.
 RWTexture2D<float4> gWsPos;
@@ -108,4 +109,13 @@ void PrimaryClosestHit(inout RayPayload payload, BuiltInTriangleIntersectionAttr
 	gMatSpec[pixelIndex] = float4(shadeData.specular, shadeData.linearRoughness);
 	// Includes Index of Refraction and whether the material is double-sided.
 	gMatExtra[pixelIndex] = float4(shadeData.IoR, shadeData.doubleSidedMaterial ? 1.f : 0.f, 0.f, 0.f);
+}
+
+[shader("anyhit")]
+void PrimaryAnyHit(inout RayPayload payload, BuiltInTriangleIntersectionAttributes attributes) {
+	if (alphaTestFails(attributes)) {
+        // The intersected geometry is transparent. Acceleration structure traversal
+        // resumes after IgnoreHit().
+        IgnoreHit();   
+    }
 }
