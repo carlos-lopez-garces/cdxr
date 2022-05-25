@@ -119,3 +119,14 @@ void PrimaryAnyHit(inout RayPayload payload, BuiltInTriangleIntersectionAttribut
         IgnoreHit();   
     }
 }
+
+cbuffer MissShaderCB {
+	float3 gBgColor;
+};
+
+[shader("miss")]
+void PrimaryMiss(inout RayPayload payload) {
+	uint2 pixelIndex = DispatchRaysIndex().xy;
+
+	gMatDif[pixelIndex] = float4(gBgColor, 1.0f);
+}
