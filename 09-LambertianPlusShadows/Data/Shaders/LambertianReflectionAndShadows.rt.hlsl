@@ -15,6 +15,43 @@ RWTexture2D<float4> gWsNorm;
 RWTexture2D<float4> gMatDif;
 RWTexture2D<float4> gOutput;
 
+// Payload for shadow rays.
+struct ShadowRayPayload {
+    // 0.0 if completely occluded, 1.0 if directly and completely light. 
+	float visibilityFactor;
+};
+
+cbuffer RayGenCB {
+	float gMinT;
+};
+
+float shootShadowRay(float3 origin, float3 direction, float minT, float maxT) {
+    RayDesc shadowRay;
+    shadowRay.Origin = origin;
+    shadowRay.Direction = direction;
+    shadowRay.TMin = minT;
+    shadowRay.TMax = maxT;
+
+    ShadowRayPayload payload = { 0.0f };
+
+    TraceRay(
+        // Ray acceleration structure supplied by Falcor.
+        gRtScene,
+        // We don't use the closesthit shader.
+        RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
+        0xFF,
+        // Hit group #0.
+        0,
+        // hitProgramCount is supplied by the framework and is the number of hit groups that exist.
+        hitProgramCount,
+        0,
+        shadowRay,
+        payload
+    );
+
+    return payload.visibilityFactor;
+}
+
 [shader("raygeneration")]
 void LambertAndShadowsRayGen() {
     // The DispatchRaysIndex() intrinsic gives the index of this thread's ray. We use it to
@@ -46,7 +83,7 @@ void LambertAndShadowsRayGen() {
             // Compute lambertian factor.
             float LdotN = saturate(dot(directionToLight, worldNormal.xyz));
 
-            float shadowFactor 1.0f;
+            float shadowFactor = shootShadowRay(worldPosition.xyz, directionToLight, gMinT, distanceToLight);
 
             pixelColor += lightIntensity * LdotN * shadowFactor;
         }
