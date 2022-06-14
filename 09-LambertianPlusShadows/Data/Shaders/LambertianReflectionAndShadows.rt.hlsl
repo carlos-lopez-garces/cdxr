@@ -25,7 +25,8 @@ struct ShadowRayPayload {
 cbuffer RayGenCB {
 	float gMinT;
     uint gFrameCount;
-    bool gOneShadowRay;
+    bool gSampleOnlyOneLight;
+    bool gShadows;
 };
 
 float shootShadowRay(float3 origin, float3 direction, float minT, float maxT) {
@@ -64,8 +65,11 @@ float3 sampleLight(int lightIndex, float4 worldPosition, float4 worldNormal, flo
     // Compute lambertian factor.
     float LdotN = saturate(dot(directionToLight, worldNormal.xyz));
 
-    float shadowFactor = shootShadowRay(worldPosition.xyz, directionToLight, gMinT, distanceToLight) / pdf;
-    // float shadowFactor = 1.0f;
+    // Dividing by the probability of choosing this light is crucial!
+    float shadowFactor = 1.0f / pdf;
+    if (gShadows) {
+        shadowFactor = shootShadowRay(worldPosition.xyz, directionToLight, gMinT, distanceToLight) / pdf;
+    }
 
     return lightIntensity * LdotN * shadowFactor;
 }
@@ -91,7 +95,7 @@ void LambertAndShadowsRayGen() {
     if (worldPosition.w != 0.0f) {
         pixelColor = float3(0.0f, 0.0f, 0.0f);
 
-        if (gOneShadowRay) {
+        if (gSampleOnlyOneLight) {
             uint randSeed = initRand(pixelIndex.x + pixelIndex.y * pixelCount.x, gFrameCount, 16);
             int lightIndex = min(int(nextRand(randSeed)*gLightsCount), gLightsCount - 1);
             // Uniform distribution.

@@ -13,7 +13,9 @@ protected:
 
     uint32_t mFrameCount = 0x1337u;
 
-    bool mOneShadowRay = true;
+    bool mSampleOnlyOneLight = true;
+
+    bool mShadows = true;
 
     LambertianReflectionAndShadowsPass() : ::RenderPass("Lambertian Reflection and Shadows", "Lambertian Reflection and Shadows Settings") {}
 
