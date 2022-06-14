@@ -5,7 +5,7 @@ namespace {
     const char *kShaderFile = "Shaders\\LambertianReflectionAndShadows.rt.hlsl";
 
     // Shader entrypoints;
-    const char* kEntryPointRayGen = "LamberAndShadowsRayGen";
+    const char* kEntryPointRayGen = "LambertAndShadowsRayGen";
 	const char* kEntryPointMiss0 = "ShadowMiss";
 	const char* kEntryPointAnyHit = "ShadowAnyHit";
 	const char* kEntryPointClosestHit = "ShadowClosestHit";
@@ -40,8 +40,8 @@ void LambertianReflectionAndShadowsPass::execute(Falcor::RenderContext* pRenderC
 
     auto rayGenVars = mpRayTracer->getRayGenVars();
     rayGenVars["RayGenCB"]["gMinT"] = mpResManager->getMinTDist();
-    rayGenVars["gWsPos"] = mpResManager->getTexture("WorldPosition");     
-	rayGenVars["gWsNorm"] = mpResManager->getTexture("WorldNormal");
+    rayGenVars["gPos"] = mpResManager->getTexture("WorldPosition");     
+	rayGenVars["gNorm"] = mpResManager->getTexture("WorldNormal");
 	rayGenVars["gMatDif"] = mpResManager->getTexture("MaterialDiffuse");
 	rayGenVars["gOutput"] = outputTex;
 

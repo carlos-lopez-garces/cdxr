@@ -11,9 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\CommonPasses\SimpleAccumulationPass.cpp" />
-    <ClCompile Include="..\CommonPasses\SimpleGBufferPass.cpp" />
-    <ClCompile Include="..\CommonPasses\ThinLensGBufferPass.cpp" />
+    <ClCompile Include="..\06-TemporalAccumulation\Passes\TemporalAccumulationPass.cpp" />
+    <ClCompile Include="..\08-ThinLensCamera\Passes\ThinLensGBufferPass.cpp" />
     <ClCompile Include="..\SharedUtils\FullscreenLaunch.cpp" />
     <ClCompile Include="..\SharedUtils\RasterLaunch.cpp" />
     <ClCompile Include="..\SharedUtils\RayLaunch.cpp" />
@@ -22,13 +21,12 @@
     <ClCompile Include="..\SharedUtils\ResourceManager.cpp" />
     <ClCompile Include="..\SharedUtils\SceneLoaderWrapper.cpp" />
     <ClCompile Include="..\SharedUtils\SimpleVars.cpp" />
-    <ClCompile Include="Passes\LambertianPlusShadowPass.cpp" />
-    <ClCompile Include="Tutor09-LambertianPlusShadows.cpp" />
+    <ClCompile Include="LambertianReflectionAndShadows.cpp" />
+    <ClCompile Include="Passes\LambertianReflectionAndShadowsPass.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\CommonPasses\SimpleAccumulationPass.h" />
-    <ClInclude Include="..\CommonPasses\SimpleGBufferPass.h" />
-    <ClInclude Include="..\CommonPasses\ThinLensGBufferPass.h" />
+    <ClInclude Include="..\06-TemporalAccumulation\Passes\TemporalAccumulationPass.h" />
+    <ClInclude Include="..\08-ThinLensCamera\Passes\ThinLensGBufferPass.h" />
     <ClInclude Include="..\SharedUtils\FullscreenLaunch.h" />
     <ClInclude Include="..\SharedUtils\RasterLaunch.h" />
     <ClInclude Include="..\SharedUtils\RayLaunch.h" />
@@ -37,15 +35,7 @@
     <ClInclude Include="..\SharedUtils\ResourceManager.h" />
     <ClInclude Include="..\SharedUtils\SceneLoaderWrapper.h" />
     <ClInclude Include="..\SharedUtils\SimpleVars.h" />
-    <ClInclude Include="Passes\LambertianPlusShadowPass.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Data\Tutorial09\lambertianPlusShadowsUtils.hlsli" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Data\Tutorial09\lambertianPlusShadows.rt.hlsl">
-      <FileType>Document</FileType>
-    </None>
+    <ClInclude Include="Passes\LambertianReflectionAndShadowsPass.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Falcor3.1\Framework\FalcorSharedObjects\FalcorSharedObjects.vcxproj">

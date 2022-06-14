@@ -6,12 +6,12 @@ import ShaderCommon;
 import Shading;     
 import Lights;
 #include "AlphaTesting.hlsli"
-#include "PRNG.hlsli"
 #include "Sampling.hlsli"
+#include "Lighting.hlsli"
 
 // G-Buffer.
-RWTexture2D<float4> gWsPos;
-RWTexture2D<float4> gWsNorm;
+RWTexture2D<float4> gPos;
+RWTexture2D<float4> gNorm;
 RWTexture2D<float4> gMatDif;
 RWTexture2D<float4> gOutput;
 
@@ -68,7 +68,7 @@ void LambertAndShadowsRayGen() {
     float4 diffuseMatColor = gMatDif[pixelIndex];
 
     // Background color for when the ray escapes the scene without hitting anything.
-    float pixelColor = diffuseMatColor.rgb;
+    float3 pixelColor = diffuseMatColor.rgb;
 
     if (worldPosition.w != 0.0f) {
         pixelColor = float3(0.0f, 0.0f, 0.0f);
@@ -83,7 +83,8 @@ void LambertAndShadowsRayGen() {
             // Compute lambertian factor.
             float LdotN = saturate(dot(directionToLight, worldNormal.xyz));
 
-            float shadowFactor = shootShadowRay(worldPosition.xyz, directionToLight, gMinT, distanceToLight);
+            // float shadowFactor = shootShadowRay(worldPosition.xyz, directionToLight, gMinT, distanceToLight);
+            float shadowFactor = 1.0f;
 
             pixelColor += lightIntensity * LdotN * shadowFactor;
         }
@@ -92,21 +93,23 @@ void LambertAndShadowsRayGen() {
         pixelColor *= diffuseMatColor.rgb / PI; 
     }
 
-    gOutput[pixelIndex] = float4(color, 1.0f);
+    gOutput[pixelIndex] = float4(pixelColor, 1.0f);
 }
 
 [shader("miss")]
 void ShadowMiss(inout ShadowRayPayload payload) {
     // The shadow ray didn't hit anything, which means that the point being shaded is unoccluded.
-    paylaod.visibilityFactor = 1.0f;
+    payload.visibilityFactor = 1.0f;
 }
 
 // BuiltInTriangleIntersectionAttributes just contains float2 barycentrics. See 
 // https://docs.microsoft.com/en-us/windows/win32/direct3d12/intersection-attributes.
 [shader("anyhit")]
 void ShadowAnyHit(inout ShadowRayPayload payload, BuiltInTriangleIntersectionAttributes attributes) {
-    // The shadow ray didn't hit anything, which means that the point being shaded is unoccluded.
-    paylaod.visibilityFactor = 1.0f;
+    // Is this a transparent part of the surface?  If so, ignore this hit
+	if (alphaTestFails(attributes)) {
+        IgnoreHit();
+    }
 }
 
 [shader("closesthit")]
