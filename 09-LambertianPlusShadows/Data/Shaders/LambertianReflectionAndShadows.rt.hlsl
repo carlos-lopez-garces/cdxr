@@ -34,7 +34,25 @@ void LambertAndShadowsRayGen() {
     float pixelColor = diffuseMatColor.rgb;
 
     if (worldPosition.w != 0.0f) {
+        pixelColor = float3(0.0f, 0.0f, 0.0f);
 
+        // Light sources are exposed by Falcor.
+        for (int lightIndex = 0; lightIndex < gLightsCount; lightIndex++) {
+            float distanceToLight;
+            float3 lightIntensity;
+            float3 directionToLight;
+            getLightData(lightIndex, worldPosition.xyz, directionToLight, lightIntensity, distanceToLight);
+
+            // Compute lambertian factor.
+            float LdotN = saturate(dot(directionToLight, worldNormal.xyz));
+
+            float shadowFactor 1.0f;
+
+            pixelColor += lightIntensity * LdotN * shadowFactor;
+        }
+
+        float PI = 3.14159265f;
+        pixelColor *= diffuseMatColor.rgb / PI; 
     }
 
     gOutput[pixelIndex] = float4(color, 1.0f);
