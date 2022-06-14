@@ -100,3 +100,9 @@ void ShadowMiss(inout ShadowRayPayload payload) {
     // The shadow ray didn't hit anything, which means that the point being shaded is unoccluded.
     paylaod.visibilityFactor = 1.0f;
 }
+
+[shader("anyhit")]
+void ShadowAnyHit(inout ShadowRayPayload payload, BuiltInTriangleIntersectionAttributes attributes) {
+    // The shadow ray didn't hit anything, which means that the point being shaded is unoccluded.
+    paylaod.visibilityFactor = 1.0f;
+}
