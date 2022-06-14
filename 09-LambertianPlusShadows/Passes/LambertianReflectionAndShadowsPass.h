@@ -11,6 +11,10 @@ protected:
     
     uint32_t mMinTSelector = 1;
 
+    uint32_t mFrameCount = 0x1337u;
+
+    bool mOneShadowRay = true;
+
     LambertianReflectionAndShadowsPass() : ::RenderPass("Lambertian Reflection and Shadows", "Lambertian Reflection and Shadows Settings") {}
 
     bool initialize(Falcor::RenderContext* pRenderContext, ResourceManager::SharedPtr pResManager) override;
@@ -18,6 +22,8 @@ protected:
     void initScene(Falcor::RenderContext* pRenderContext, Scene::SharedPtr pScene) override;
 
     void execute(Falcor::RenderContext* pRenderContext) override;
+
+    void renderGui(Gui* pGui) override;
 
     bool requiresScene() override {
         return true; 

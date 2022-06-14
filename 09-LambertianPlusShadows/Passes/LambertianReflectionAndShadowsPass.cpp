@@ -40,6 +40,8 @@ void LambertianReflectionAndShadowsPass::execute(Falcor::RenderContext* pRenderC
 
     auto rayGenVars = mpRayTracer->getRayGenVars();
     rayGenVars["RayGenCB"]["gMinT"] = mpResManager->getMinTDist();
+    rayGenVars["RayGenCB"]["gFrameCount"] = mFrameCount++;
+    rayGenVars["RayGenCB"]["gOneShadowRay"] = mOneShadowRay;
     rayGenVars["gPos"] = mpResManager->getTexture("WorldPosition");     
 	rayGenVars["gNorm"] = mpResManager->getTexture("WorldNormal");
 	rayGenVars["gMatDif"] = mpResManager->getTexture("MaterialDiffuse");
@@ -52,5 +54,15 @@ void LambertianReflectionAndShadowsPass::initScene(Falcor::RenderContext* pRende
     mpScene = std::dynamic_pointer_cast<RtScene>(pScene);
 	if (mpRayTracer) {
         mpRayTracer->setScene(mpScene);
+    }
+}
+
+void LambertianReflectionAndShadowsPass::renderGui(Gui* pGui) {
+	int dirty = 0;
+
+	dirty |= (int)pGui->addCheckBox(mOneShadowRay ? "One shadow ray to a random light" : "One shadow ray per light", mOneShadowRay);
+
+	if (dirty) {
+        setRefreshFlag();
     }
 }
