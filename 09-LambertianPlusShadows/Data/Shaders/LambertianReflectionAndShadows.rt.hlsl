@@ -101,8 +101,19 @@ void ShadowMiss(inout ShadowRayPayload payload) {
     paylaod.visibilityFactor = 1.0f;
 }
 
+// BuiltInTriangleIntersectionAttributes just contains float2 barycentrics. See 
+// https://docs.microsoft.com/en-us/windows/win32/direct3d12/intersection-attributes.
 [shader("anyhit")]
 void ShadowAnyHit(inout ShadowRayPayload payload, BuiltInTriangleIntersectionAttributes attributes) {
     // The shadow ray didn't hit anything, which means that the point being shaded is unoccluded.
     paylaod.visibilityFactor = 1.0f;
+}
+
+[shader("closesthit")]
+void ShadowClosestHit(inout ShadowRayPayload payload, BuiltInTriangleIntersectionAttributes attribs) {
+    // By ShadowRayPayload.visibilityFactor = 0.0 be the default value, it is assumed that the
+    // shadow ray will hit an occluder; if there's none, the miss shader will set it 1.0.
+    //
+    // This is technically not necessary.
+    payload.visibilityFactor = 0.0;
 }
