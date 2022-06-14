@@ -4,27 +4,26 @@
 #include "../SharedUtils/RayLaunch.h"
 
 class LambertianReflectionAndShadowsPass : public ::RenderPass, inherit_shared_from_this<::RenderPass, LambertianReflectionAndShadowsPass> {
-protected
-	RayLaunch::SharedPtr mpRayTracer;
+protected:
+    RayLaunch::SharedPtr mpRayTracer;
 
     RtScene::SharedPtr mpScene;
     
-	uint32_t mMinTSelector = 1;
+    uint32_t mMinTSelector = 1;
 
-	LambertianReflectionAndShadowsPass() : ::RenderPass("Lambertian Reflection and Shadows", "Lambertian Reflection and Shadows Settings") {}
+    LambertianReflectionAndShadowsPass() : ::RenderPass("Lambertian Reflection and Shadows", "Lambertian Reflection and Shadows Settings") {}
 
     bool initialize(Falcor::RenderContext* pRenderContext, ResourceManager::SharedPtr pResManager) override;
 
     void initScene(Falcor::RenderContext* pRenderContext, Scene::SharedPtr pScene) override;
 
-    void execute(RenderCFalcor::ontext* pRenderContext) override;
+    void execute(Falcor::RenderContext* pRenderContext) override;
 
-
-	bool requiresScene() override {
+    bool requiresScene() override {
         return true; 
     }
 
-	bool usesRayTracing() override {
+    bool usesRayTracing() override {
         return true; 
     }
 

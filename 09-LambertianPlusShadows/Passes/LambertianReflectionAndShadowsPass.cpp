@@ -31,6 +31,23 @@ bool LambertianReflectionAndShadowsPass::initialize(Falcor::RenderContext* pRend
     return true;
 }
 
+void LambertianReflectionAndShadowsPass::execute(Falcor::RenderContext* pRenderContext) {
+    Texture::SharedPtr outputTex = mpResManager->getClearedTexture(ResourceManager::kOutputChannel, vec4(0.0f, 0.0f, 0.0f, 0.0f));
+
+    if (!outputTex || !mpRayTracer || !mpRayTracer->readyToRender()) {
+        return;
+    }
+
+    auto rayGenVars = mpRayTracer->getRayGenVars();
+    rayGenVars["RayGenCB"]["gMinT"] = mpResManager->getMinTDist();
+    rayGenVars["gWsPos"] = mpResManager->getTexture("WorldPosition");     
+	rayGenVars["gWsNorm"] = mpResManager->getTexture("WorldNormal");
+	rayGenVars["gMatDif"] = mpResManager->getTexture("MaterialDiffuse");
+	rayGenVars["gOutput"] = outputTex;
+
+    mpRayTracer->execute(pRenderContext, mpResManager->getScreenSize());
+}
+
 void LambertianReflectionAndShadowsPass::initScene(Falcor::RenderContext* pRenderContext, Scene::SharedPtr pScene) {
     mpScene = std::dynamic_pointer_cast<RtScene>(pScene);
 	if (mpRayTracer) {
