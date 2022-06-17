@@ -10,6 +10,9 @@ namespace {
 	const char* kEntryPointMiss0 = "PrimaryMiss";
 	const char* kEntryPrimaryAnyHit = "PrimaryAnyHit";
 	const char* kEntryPrimaryClosestHit = "PrimaryClosestHit";
+
+    // Environment map file.
+    const char* kEnvironmentMap = "MonValley_G_DirtRoad_3k.hdr";
 };
 
 bool ThinLensGBufferPass::initialize(Falcor::RenderContext *pRenderContext, ResourceManager::SharedPtr pResManager) {
@@ -20,6 +23,8 @@ bool ThinLensGBufferPass::initialize(Falcor::RenderContext *pRenderContext, Reso
         // Channels.
         "WorldPosition", "WorldNormal", "MaterialDiffuse", "MaterialSpecRough", "MaterialExtraParams"
     });
+
+    mpResManager->updateEnvironmentMap(kEnvironmentMap);
 
     mpResManager->setDefaultSceneName("Scenes\\PinkRoom\\pink_room.fscene");
 
@@ -66,16 +71,18 @@ void ThinLensGBufferPass::execute(Falcor::RenderContext *pRenderContext) {
     // Set up variables for all hit shaders.
     for (auto hitVars : mpRayTracer->getHitVars(0)) {
         hitVars["gWsPos"] = worldSpacePosition;
-		hitVars["gWsNorm"] = worldSpaceNormal;
-		hitVars["gMatDif"] = materialDiffuse;
-		hitVars["gMatSpec"] = materialSpecularRoughness;
-		hitVars["gMatExtra"] = materialExtraParams;
+        hitVars["gWsNorm"] = worldSpaceNormal;
+        hitVars["gMatDif"] = materialDiffuse;
+        hitVars["gMatSpec"] = materialSpecularRoughness;
+        hitVars["gMatExtra"] = materialExtraParams;
     }
 
     auto missVars = mpRayTracer->getMissVars(0);
     // Color sampled by all rays that escape the scene without hitting anything. Constant buffer.
     missVars["MissShaderCB"]["gBgColor"] = mBgColor;
+    missVars["MissShaderCB"]["gUseEnvMap"] = mUseEnvMap;
     missVars["gMatDif"] = materialDiffuse;
+    missVars["gEnvMap"] = mpResManager->getTexture(ResourceManager::kEnvironmentMap);
 
     if (mUseJitter && mpScene && mpScene->getActiveCamera()) {
         // Jitter the camera with random subpixel offsets of size up to half a pixel.
@@ -112,6 +119,8 @@ void ThinLensGBufferPass::renderGui(Gui* pGui) {
 	}
 
 	dirty |= (int)pGui->addCheckBox(mUseJitter ? "Jitter" : "No jitter", mUseJitter);
+
+	dirty |= (int)pGui->addCheckBox(mUseEnvMap ? "Environment map" : "Background color", mUseEnvMap);
 
 	if (dirty) {
         setRefreshFlag();

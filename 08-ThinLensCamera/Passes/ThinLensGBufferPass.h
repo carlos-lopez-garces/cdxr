@@ -24,6 +24,7 @@ protected:
     float mFNumber = 32.0f;
 
     vec3 mBgColor = vec3(0.5f, 0.5f, 1.0f);
+    bool mUseEnvMap = true;
 
     uint mFrameCount = 0xdeadbeef;
 

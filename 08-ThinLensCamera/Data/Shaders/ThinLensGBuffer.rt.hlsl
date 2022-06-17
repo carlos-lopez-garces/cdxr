@@ -2,8 +2,8 @@
 import Raytracing;
 import ShaderCommon;
 import Shading;
-#include "PRNG.hlsli"
 #include "AlphaTesting.hlsli"
+#include "Sampling.hlsli"
 
 // G-Buffer.
 RWTexture2D<float4> gWsPos;
@@ -11,6 +11,8 @@ RWTexture2D<float4> gWsNorm;
 RWTexture2D<float4> gMatDif;
 RWTexture2D<float4> gMatSpec;
 RWTexture2D<float4> gMatExtra;
+// Environment map;
+Texture2D<float4> gEnvMap;
 
 cbuffer RayGenCB {
 	float2 gPixelJitter;
@@ -124,11 +126,21 @@ void PrimaryAnyHit(inout RayPayload payload, BuiltInTriangleIntersectionAttribut
 
 cbuffer MissShaderCB {
 	float3 gBgColor;
+	bool gUseEnvMap;
 };
 
 [shader("miss")]
 void PrimaryMiss(inout RayPayload payload) {
 	uint2 pixelIndex = DispatchRaysIndex().xy;
 
-	gMatDif[pixelIndex] = float4(gBgColor, 1.0f);
+	float2 envMapDimensions;
+	gEnvMap.GetDimensions(envMapDimensions.x, envMapDimensions.y);
+
+	float2 uv = WorldToLatitudeLongitude(WorldRayDirection());
+
+	if (gUseEnvMap) {
+		gMatDif[pixelIndex] = float4(gEnvMap[uint2(uv * envMapDimensions)].rgb, 1.0f);
+	} else {
+		gMatDif[pixelIndex] = float4(gBgColor, 1.0f);
+	}
 }
