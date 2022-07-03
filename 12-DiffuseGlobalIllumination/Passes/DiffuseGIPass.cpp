@@ -41,6 +41,7 @@ bool DiffuseGIPass::initialize(RenderContext* pRenderContext, ResourceManager::S
 
 void DiffuseGIPass::initScene(RenderContext* pRenderContext, Scene::SharedPtr pScene) {
     mpScene = std::dynamic_pointer_cast<RtScene>(pScene);
+    if (mpRayTracer) mpRayTracer->setScene(mpScene);
 }
 
 void DiffuseGIPass::execute(RenderContext* pRenderContext) {
@@ -54,8 +55,8 @@ void DiffuseGIPass::execute(RenderContext* pRenderContext) {
     rayGenVars["RayGenCB"]["gFrameCount"] = mFrameCount++;
     rayGenVars["RayGenCB"]["gTMin"] = mpResManager->getMinTDist();
     rayGenVars["RayGenCB"]["gTMax"] = FLT_MAX;
-    rayGenVars["gPos"] = mpResManager->getTexture("WorldPosition");     
-	rayGenVars["gNorm"] = mpResManager->getTexture("WorldNormal");
+    rayGenVars["gWsPos"] = mpResManager->getTexture("WorldPosition");     
+	rayGenVars["gWsNorm"] = mpResManager->getTexture("WorldNormal");
 	rayGenVars["gMatDif"] = mpResManager->getTexture("MaterialDiffuse");
 	rayGenVars["gOutput"] = outputTex;
 

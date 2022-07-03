@@ -8,25 +8,11 @@ import Lights;
 #include "AlphaTesting.hlsli"
 // Already includes PRNG.hlsli.
 #include "Sampling.hlsli"
-#include "Lighting.hlsli"
-
-// G-Buffer.
-RWTexture2D<float4> gPos;
-RWTexture2D<float4> gNorm;
-RWTexture2D<float4> gMatDif;
-RWTexture2D<float4> gOutput;
 
 // Payload for shadow rays.
 struct ShadowRayPayload {
     // 0.0 if completely occluded, 1.0 if directly and completely light. 
 	float visibilityFactor;
-};
-
-cbuffer RayGenCB {
-	float gMinT;
-    uint gFrameCount;
-    bool gSampleOnlyOneLight;
-    bool gShadows;
 };
 
 float shootShadowRay(float3 origin, float3 direction, float minT, float maxT) {
