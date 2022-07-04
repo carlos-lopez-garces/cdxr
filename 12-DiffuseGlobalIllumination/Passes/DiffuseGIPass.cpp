@@ -9,6 +9,9 @@ namespace {
 
     // Entrypoints.
     const char *kEntryPointRayGen = "DiffuseGIRayGen";
+    const char *kEntryPointGIClosestHit = "GIClosestHit";
+    const char *kEntryPointGIAnyHit = "GIAnyHit";
+    const char *kEntryPointGIMiss = "GIMiss";
     const char *kEntryPointShadowClosestHit = "ShadowClosestHit";
     const char *kEntryPointShadowAnyHit = "ShadowAnyHit";
     const char *kEntryPointShadowMiss = "ShadowMiss";
@@ -26,9 +29,13 @@ bool DiffuseGIPass::initialize(RenderContext* pRenderContext, ResourceManager::S
 
     mpRayTracer = RayLaunch::create(kShaderFile, kEntryPointRayGen);
 
-    // Ray type 1: shadow rays.
+    // Ray type / hit group 0: shadow rays.
     mpRayTracer->addHitShader(kShaderFile, kEntryPointShadowClosestHit, kEntryPointShadowAnyHit);
     mpRayTracer->addMissShader(kShaderFile, kEntryPointShadowMiss);
+
+    // Ray type / hit group 1: GI rays.
+    mpRayTracer->addHitShader(kShaderFile, kEntryPointGIClosestHit, kEntryPointGIAnyHit);
+    mpRayTracer->addMissShader(kShaderFile, kEntryPointGIMiss);
 
     mpRayTracer->compileRayProgram();
     if (mpScene) {
@@ -55,6 +62,8 @@ void DiffuseGIPass::execute(RenderContext* pRenderContext) {
     rayGenVars["RayGenCB"]["gFrameCount"] = mFrameCount++;
     rayGenVars["RayGenCB"]["gTMin"] = mpResManager->getMinTDist();
     rayGenVars["RayGenCB"]["gTMax"] = FLT_MAX;
+    rayGenVars["RayGenCB"]["gDoDirectShadows"] = mDoDirectShadows;
+    rayGenVars["RayGenCB"]["gRecursionDepth"] = uint32_t(mRecursionDepth);
     rayGenVars["gWsPos"] = mpResManager->getTexture("WorldPosition");     
 	rayGenVars["gWsNorm"] = mpResManager->getTexture("WorldNormal");
 	rayGenVars["gMatDif"] = mpResManager->getTexture("MaterialDiffuse");
@@ -64,5 +73,16 @@ void DiffuseGIPass::execute(RenderContext* pRenderContext) {
 }
 
 void DiffuseGIPass::renderGui(Gui* pGui) {
+    int dirty = 0;
 
+    dirty |= (int)pGui->addCheckBox(mDoDirectShadows ? "Shoot shadow rays" : "Don't shoot shadow rays", mDoDirectShadows);
+
+    pGui->addText("     ");
+    dirty |= (int)pGui->addIntVar("Recursion depth", mRecursionDepth, 0, INT32_MAX);
+
+    // dirty |= (int)pGui->addCheckBox(mSampleOnlyOneLight ? "Sample one light at random" : "Sample every light", mSampleOnlyOneLight);
+
+	if (dirty) {
+        setRefreshFlag();
+    }
 }
