@@ -11,6 +11,7 @@ protected:
 	bool mDoIndirectGI = true;
 	bool mDoCosSampling = true;
 	bool mDoDirectShadows = true;
+	bool mDoGI = true;
 	int32_t mRecursionDepth = 1;
 
 	uint32_t mFrameCount = 0x1337u;

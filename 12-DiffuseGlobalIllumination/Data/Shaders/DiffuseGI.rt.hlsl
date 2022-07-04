@@ -6,6 +6,7 @@ import Shading;
 import Lights;
 #include "Shadows.hlsli"
 #include "Lighting.hlsli"
+#include "GI.hlsli"
 
 // G-Buffer.
 Texture2D<float4> gWsPos;
@@ -14,18 +15,13 @@ Texture2D<float4> gMatDif;
 
 RWTexture2D<float4> gOutput;
 
-struct RayPayload {
-    float4 sampledInterreflectionColor;
-    float4 samplePoint;
-    float3 samplePointNormal;
-};
-
 cbuffer RayGenCB {
     uint gFrameCount;
     float gTMin;
     float gTMax;
     uint gRecursionDepth;
     bool gDoDirectShadows;
+    bool gDoGI;
 };
 
 [shader("raygeneration")]
@@ -48,70 +44,12 @@ void DiffuseGIRayGen() {
         // Direct illumination.
         // gLightsCount and getLightData() are automatically imported by Falcor.
         int lightToSample = min(int(nextRand(randSeed) * gLightsCount), gLightsCount - 1);
-        // Sample uniformly.
-        float pdf = 1.0f / gLightsCount;
-        gOutput[pixelIndex] = float4(pixelColor.xyz * sampleLight(lightToSample, gWsPos[pixelIndex], gWsNorm[pixelIndex], pdf, gDoDirectShadows, gTMin), 1.0f);
+        gOutput[pixelIndex] = float4(pixelColor.rgb * sampleLight(lightToSample, gWsPos[pixelIndex], gWsNorm[pixelIndex], gDoDirectShadows, gTMin), 1.0f);
 
         // Indirect illumination.
-        RayDesc ray;
-        ray.Origin = gWsPos[pixelIndex].xyz;
-        ray.Direction = getCosHemisphereSample(randSeed, gWsNorm[pixelIndex].xyz).xyz;
-        ray.TMin = gTMin;
-        ray.TMax = gTMax;
-
-        RayPayload payload;        
-        // Initial interreflection color.
-        payload.sampledInterreflectionColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
-
-        for (uint i=0; i<gRecursionDepth; ++i) {
-            TraceRay(
-                gRtScene,
-                RAY_FLAG_NONE,
-                0xFF,
-                // Hit group #0.
-                1,
-                // hitProgramCount is supplied by the framework and is the number of hit groups that exist.
-                hitProgramCount,
-                // Miss shader?
-                1,
-                ray,
-                payload,
-            );
-
-            gOutput[pixelIndex] *= payload.sampledInterreflectionColor;
-
-            // Next sample point.
-            ray.Origin = payload.samplePoint.xyz;
-            ray.Direction = getCosHemisphereSample(randSeed, payload.samplePointNormal).xyz;
+        if (gDoGI) {
+            float4 interreflectionColor = shootGIRay(gWsPos[pixelIndex].xyz, gWsNorm[pixelIndex].xyz, randSeed);
+            gOutput[pixelIndex] += interreflectionColor;
         }
     }
-}
-
-[shader("closesthit")]
-void GIClosestHit(inout RayPayload payload, BuiltInTriangleIntersectionAttributes attributes) {
-    // PrimitiveIndex() is an object introspection intrinsic that returns
-    // the identifier of the current primitive.
-    ShadingData shadeData = getShadingData(PrimitiveIndex(), attributes);
-
-	// gWsNorm[launchIndex] = float4(shadeData.N, length(shadeData.posW - gCamera.posW));
-	// gMatDif[launchIndex] = float4(shadeData.diffuse, shadeData.opacity);
-	// gMatSpec[launchIndex] = float4(shadeData.specular, shadeData.linearRoughness);
-	// gMatExtra[launchIndex] = float4(shadeData.IoR, shadeData.doubleSidedMaterial ? 1.f : 0.f, 0.f, 0.f);
-	// gMatEmissive[launchIndex] = float4(shadeData.emissive, 0.f);
-
-    payload.sampledInterreflectionColor = float4(shadeData.diffuse, shadeData.opacity);
-    payload.samplePoint = float4(shadeData.posW, 1.f);
-    payload.samplePointNormal = shadeData.N;
-}
-
-[shader("anyhit")]
-void GIAnyHit(inout RayPayload payload, BuiltInTriangleIntersectionAttributes attributes) {
-    if(alphaTestFails(attributes)) {
-        IgnoreHit();
-    }
-}
-
-[shader("miss")]
-void GIMiss(inout RayPayload payload) {
-
 }

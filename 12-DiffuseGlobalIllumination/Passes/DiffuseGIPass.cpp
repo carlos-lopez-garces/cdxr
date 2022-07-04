@@ -64,6 +64,7 @@ void DiffuseGIPass::execute(RenderContext* pRenderContext) {
     rayGenVars["RayGenCB"]["gTMax"] = FLT_MAX;
     rayGenVars["RayGenCB"]["gDoDirectShadows"] = mDoDirectShadows;
     rayGenVars["RayGenCB"]["gRecursionDepth"] = uint32_t(mRecursionDepth);
+    rayGenVars["RayGenCB"]["gDoGI"] = mDoGI;
     rayGenVars["gWsPos"] = mpResManager->getTexture("WorldPosition");     
 	rayGenVars["gWsNorm"] = mpResManager->getTexture("WorldNormal");
 	rayGenVars["gMatDif"] = mpResManager->getTexture("MaterialDiffuse");
