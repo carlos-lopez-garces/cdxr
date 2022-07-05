@@ -1,10 +1,9 @@
 struct GIRayPayload {
     float4 sampledInterreflectionColor;
-    float4 samplePoint;
-    float3 samplePointNormal;
+    uint randSeed;
 };
 
-float4 shootGIRay(float3 surfacePoint, float3 surfaceNormal, uint randSeed) {
+float4 shootGIRay(float3 surfacePoint, float3 surfaceNormal, float4 surfaceColor, uint randSeed) {
     // Indirect illumination.
     float3 bounceDirection = getCosHemisphereSample(randSeed, surfaceNormal);
     RayDesc ray;
@@ -13,11 +12,13 @@ float4 shootGIRay(float3 surfacePoint, float3 surfaceNormal, uint randSeed) {
     ray.TMin = gTMin;
     ray.TMax = gTMax;
 
-    GIRayPayload payload;        
-    // Initial interreflection color.
-    payload.sampledInterreflectionColor = float4(1.0f, 1.0f, 1.0f, 1.0f);
+    // Lambertian factor.
     float BdotN = saturate(dot(bounceDirection, surfaceNormal));
     float bouncePdf = BdotN / M_PI;
+
+    GIRayPayload payload;
+    payload.sampledInterreflectionColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
+    payload.randSeed = randSeed;
 
     TraceRay(
         gRtScene,
@@ -33,7 +34,7 @@ float4 shootGIRay(float3 surfacePoint, float3 surfaceNormal, uint randSeed) {
         payload,
     );
 
-    return payload.sampledInterreflectionColor;
+    return (payload.sampledInterreflectionColor * surfaceColor * BdotN / M_PI) / bouncePdf;
 }
 
 [shader("closesthit")]
@@ -42,15 +43,8 @@ void GIClosestHit(inout GIRayPayload payload, BuiltInTriangleIntersectionAttribu
     // the identifier of the current primitive.
     ShadingData shadeData = getShadingData(PrimitiveIndex(), attributes);
 
-	// gWsNorm[launchIndex] = float4(shadeData.N, length(shadeData.posW - gCamera.posW));
-	// gMatDif[launchIndex] = float4(shadeData.diffuse, shadeData.opacity);
-	// gMatSpec[launchIndex] = float4(shadeData.specular, shadeData.linearRoughness);
-	// gMatExtra[launchIndex] = float4(shadeData.IoR, shadeData.doubleSidedMaterial ? 1.f : 0.f, 0.f, 0.f);
-	// gMatEmissive[launchIndex] = float4(shadeData.emissive, 0.f);
-
-    payload.sampledInterreflectionColor = float4(shadeData.diffuse, shadeData.opacity);
-    payload.samplePoint = float4(shadeData.posW, 1.f);
-    payload.samplePointNormal = shadeData.N;
+    int lightToSample = min(int(nextRand(payload.randSeed) * gLightsCount), gLightsCount - 1);
+    payload.sampledInterreflectionColor = float4(shadeData.diffuse.rgb * sampleLight(lightToSample, shadeData.posW, shadeData.N, gDoDirectShadows, gTMin), 1.0f);
 }
 
 [shader("anyhit")]

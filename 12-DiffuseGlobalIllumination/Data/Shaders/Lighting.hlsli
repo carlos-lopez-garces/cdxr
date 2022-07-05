@@ -12,20 +12,19 @@ void getLightData(in int index, in float3 hitPos, out float3 directionToLight, o
 	distanceToLight = length(ls.posW - hitPos);
 }
 
-float3 sampleLight(int lightIndex, float4 worldPosition, float4 worldNormal, float pdf, bool shadows, float minT) {
+float3 sampleLight(int lightIndex, float3 worldPosition, float3 worldNormal, bool shadows, float minT) {
     float distanceToLight;
     float3 lightIntensity;
     float3 directionToLight;
-    getLightData(lightIndex, worldPosition.xyz, directionToLight, lightIntensity, distanceToLight);
+    getLightData(lightIndex, worldPosition, directionToLight, lightIntensity, distanceToLight);
 
     // Compute lambertian factor.
-    float LdotN = saturate(dot(directionToLight, worldNormal.xyz));
+    float LdotN = saturate(dot(directionToLight, worldNormal));
 
-    // Dividing by the probability of choosing this light is crucial!
-    float shadowFactor = 1.0f / pdf;
+    float shadowFactor = float(gLightsCount);
     if (shadows) {
-        shadowFactor = shootShadowRay(worldPosition.xyz, directionToLight, minT, distanceToLight) / pdf;
+        shadowFactor = shootShadowRay(worldPosition, directionToLight, minT, distanceToLight);
     }
 
-    return lightIntensity * LdotN * shadowFactor;
+    return lightIntensity * LdotN * shadowFactor / M_PI;
 }

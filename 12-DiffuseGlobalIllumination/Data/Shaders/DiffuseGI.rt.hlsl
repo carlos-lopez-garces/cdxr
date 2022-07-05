@@ -44,11 +44,11 @@ void DiffuseGIRayGen() {
         // Direct illumination.
         // gLightsCount and getLightData() are automatically imported by Falcor.
         int lightToSample = min(int(nextRand(randSeed) * gLightsCount), gLightsCount - 1);
-        gOutput[pixelIndex] = float4(pixelColor.rgb * sampleLight(lightToSample, gWsPos[pixelIndex], gWsNorm[pixelIndex], gDoDirectShadows, gTMin), 1.0f);
+        gOutput[pixelIndex] = float4(pixelColor.rgb * sampleLight(lightToSample, gWsPos[pixelIndex].xyz, gWsNorm[pixelIndex].xyz, gDoDirectShadows, gTMin), 1.0f);
 
         // Indirect illumination.
         if (gDoGI) {
-            float4 interreflectionColor = shootGIRay(gWsPos[pixelIndex].xyz, gWsNorm[pixelIndex].xyz, randSeed);
+            float4 interreflectionColor = shootGIRay(gWsPos[pixelIndex].xyz, gWsNorm[pixelIndex].xyz, pixelColor, randSeed);
             gOutput[pixelIndex] += interreflectionColor;
         }
     }

@@ -78,6 +78,8 @@ void DiffuseGIPass::renderGui(Gui* pGui) {
 
     dirty |= (int)pGui->addCheckBox(mDoDirectShadows ? "Shoot shadow rays" : "Don't shoot shadow rays", mDoDirectShadows);
 
+    dirty |= (int)pGui->addCheckBox(mDoGI ? "Shoot GI rays" : "Don't shoot GI rays", mDoGI);
+
     pGui->addText("     ");
     dirty |= (int)pGui->addIntVar("Recursion depth", mRecursionDepth, 0, INT32_MAX);
 
