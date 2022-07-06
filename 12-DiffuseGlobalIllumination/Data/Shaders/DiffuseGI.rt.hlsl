@@ -19,7 +19,6 @@ cbuffer RayGenCB {
     uint gFrameCount;
     float gTMin;
     float gTMax;
-    uint gRecursionDepth;
     bool gDoDirectShadows;
     bool gDoGI;
     bool gDoCosineSampling;

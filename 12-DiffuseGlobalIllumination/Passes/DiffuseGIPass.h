@@ -7,16 +7,18 @@ class DiffuseGIPass : public ::RenderPass, inherit_shared_from_this<::RenderPass
 protected:
 	RayLaunch::SharedPtr mpRayTracer;
     RtScene::SharedPtr mpScene;
+	std::string mOutputBuffer;
 
 	bool mDoIndirectGI = true;
 	bool mDoCosSampling = true;
 	bool mDoDirectShadows = true;
 	bool mDoGI = true;
-	int32_t mRecursionDepth = 1;
 
 	uint32_t mFrameCount = 0x1337u;
 
-	DiffuseGIPass() : ::RenderPass("Diffuse GI Ray", "Diffuse GI Settings") {}
+	DiffuseGIPass(const std::string &outputBuffer) : ::RenderPass("Diffuse GI Ray", "Diffuse GI Settings") {
+		mOutputBuffer = outputBuffer;
+	}
 
     bool initialize(RenderContext* pRenderContext, ResourceManager::SharedPtr pResManager) override;
 
@@ -43,7 +45,7 @@ public:
 
     using SharedConstPtr = std::shared_ptr<const DiffuseGIPass>;
 
-    static SharedPtr create() { return SharedPtr(new DiffuseGIPass()); }
+    static SharedPtr create(const std::string &outputBuffer) { return SharedPtr(new DiffuseGIPass(outputBuffer)); }
 
     virtual ~DiffuseGIPass() = default;
 };

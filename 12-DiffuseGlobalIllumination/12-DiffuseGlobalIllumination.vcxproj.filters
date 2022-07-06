@@ -45,6 +45,9 @@
     <ClInclude Include="..\08-ThinLensCamera\Passes\ThinLensGBufferPass.h">
       <Filter>Passes</Filter>
     </ClInclude>
+    <ClInclude Include="Passes\ToneMappingPass.h">
+      <Filter>Passes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\SharedUtils\RenderingPipeline.cpp">
@@ -76,6 +79,9 @@
       <Filter>Passes</Filter>
     </ClCompile>
     <ClCompile Include="..\08-ThinLensCamera\Passes\ThinLensGBufferPass.cpp">
+      <Filter>Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Passes\ToneMappingPass.cpp">
       <Filter>Passes</Filter>
     </ClCompile>
   </ItemGroup>

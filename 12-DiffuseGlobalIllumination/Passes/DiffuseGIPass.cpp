@@ -23,7 +23,7 @@ bool DiffuseGIPass::initialize(RenderContext* pRenderContext, ResourceManager::S
     mpResManager->requestTextureResources({
         "WorldPosition", "WorldNormal", "MaterialDiffuse"
     });
-    mpResManager->requestTextureResource(ResourceManager::kOutputChannel);
+    mpResManager->requestTextureResource(mOutputBuffer);
     mpResManager->requestTextureResource(ResourceManager::kEnvironmentMap);
 
     mpResManager->setDefaultSceneName("Data/pink_room/pink_room.fscene");
@@ -54,7 +54,7 @@ void DiffuseGIPass::initScene(RenderContext* pRenderContext, Scene::SharedPtr pS
 }
 
 void DiffuseGIPass::execute(RenderContext* pRenderContext) {
-    Texture::SharedPtr outputTex = mpResManager->getClearedTexture(ResourceManager::kOutputChannel, vec4(0.0f, 0.0f, 0.0f, 0.0f));
+    Texture::SharedPtr outputTex = mpResManager->getClearedTexture(mOutputBuffer, vec4(0.0f, 0.0f, 0.0f, 0.0f));
 
     if (!outputTex || !mpRayTracer || !mpRayTracer->readyToRender()) {
         return;
@@ -66,7 +66,6 @@ void DiffuseGIPass::execute(RenderContext* pRenderContext) {
     rayGenVars["RayGenCB"]["gTMax"] = FLT_MAX;
     rayGenVars["RayGenCB"]["gDoDirectShadows"] = mDoDirectShadows;
     rayGenVars["RayGenCB"]["gDoCosineSampling"] = mDoCosSampling;
-    rayGenVars["RayGenCB"]["gRecursionDepth"] = uint32_t(mRecursionDepth);
     rayGenVars["RayGenCB"]["gDoGI"] = mDoGI;
     rayGenVars["gWsPos"] = mpResManager->getTexture("WorldPosition");     
 	rayGenVars["gWsNorm"] = mpResManager->getTexture("WorldNormal");
@@ -90,11 +89,6 @@ void DiffuseGIPass::renderGui(Gui* pGui) {
     dirty |= (int)pGui->addCheckBox(mDoGI ? "Shoot GI rays" : "Don't shoot GI rays", mDoGI);
 
     dirty |= (int)pGui->addCheckBox(mDoCosSampling ? "Cosine-weighted hemisphere sampling" : "Uniform hemisphere sampling", mDoCosSampling);
-
-    pGui->addText("     ");
-    dirty |= (int)pGui->addIntVar("Recursion depth", mRecursionDepth, 0, INT32_MAX);
-
-    // dirty |= (int)pGui->addCheckBox(mSampleOnlyOneLight ? "Sample one light at random" : "Sample every light", mSampleOnlyOneLight);
 
 	if (dirty) {
         setRefreshFlag();
