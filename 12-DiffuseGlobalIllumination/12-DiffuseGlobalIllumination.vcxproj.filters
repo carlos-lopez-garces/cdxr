@@ -27,15 +27,6 @@
     <ClInclude Include="..\SharedUtils\SimpleVars.h">
       <Filter>SharedUtils</Filter>
     </ClInclude>
-    <ClInclude Include="..\CommonPasses\SimpleAccumulationPass.h">
-      <Filter>CommonPasses</Filter>
-    </ClInclude>
-    <ClInclude Include="..\CommonPasses\LightProbeGBufferPass.h">
-      <Filter>CommonPasses</Filter>
-    </ClInclude>
-    <ClInclude Include="Passes\SimpleDiffuseGIPass.h">
-      <Filter>Passes</Filter>
-    </ClInclude>
     <ClInclude Include="..\SharedUtils\FullscreenLaunch.h">
       <Filter>SharedUtils</Filter>
     </ClInclude>
@@ -44,6 +35,15 @@
     </ClInclude>
     <ClInclude Include="..\SharedUtils\RenderPass.h">
       <Filter>SharedUtils</Filter>
+    </ClInclude>
+    <ClInclude Include="Passes\DiffuseGIPass.h">
+      <Filter>Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\06-TemporalAccumulation\Passes\TemporalAccumulationPass.h">
+      <Filter>Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\08-ThinLensCamera\Passes\ThinLensGBufferPass.h">
+      <Filter>Passes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -59,16 +59,6 @@
     <ClCompile Include="..\SharedUtils\SimpleVars.cpp">
       <Filter>SharedUtils</Filter>
     </ClCompile>
-    <ClCompile Include="..\CommonPasses\SimpleAccumulationPass.cpp">
-      <Filter>CommonPasses</Filter>
-    </ClCompile>
-    <ClCompile Include="..\CommonPasses\LightProbeGBufferPass.cpp">
-      <Filter>CommonPasses</Filter>
-    </ClCompile>
-    <ClCompile Include="Tutor12-DiffuseGlobalIllumination.cpp" />
-    <ClCompile Include="Passes\SimpleDiffuseGIPass.cpp">
-      <Filter>Passes</Filter>
-    </ClCompile>
     <ClCompile Include="..\SharedUtils\FullscreenLaunch.cpp">
       <Filter>SharedUtils</Filter>
     </ClCompile>
@@ -77,6 +67,16 @@
     </ClCompile>
     <ClCompile Include="..\SharedUtils\RenderPass.cpp">
       <Filter>SharedUtils</Filter>
+    </ClCompile>
+    <ClCompile Include="Passes\DiffuseGIPass.cpp">
+      <Filter>Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="DiffuseGlobalIllumination.cpp" />
+    <ClCompile Include="..\06-TemporalAccumulation\Passes\TemporalAccumulationPass.cpp">
+      <Filter>Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\08-ThinLensCamera\Passes\ThinLensGBufferPass.cpp">
+      <Filter>Passes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

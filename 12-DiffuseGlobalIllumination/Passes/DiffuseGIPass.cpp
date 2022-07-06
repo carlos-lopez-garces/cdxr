@@ -65,7 +65,7 @@ void DiffuseGIPass::execute(RenderContext* pRenderContext) {
     rayGenVars["RayGenCB"]["gTMin"] = mpResManager->getMinTDist();
     rayGenVars["RayGenCB"]["gTMax"] = FLT_MAX;
     rayGenVars["RayGenCB"]["gDoDirectShadows"] = mDoDirectShadows;
-    rayGenVars["RayGenCB"]["gDoDirectShadows"] = mDoCosSampling;
+    rayGenVars["RayGenCB"]["gDoCosineSampling"] = mDoCosSampling;
     rayGenVars["RayGenCB"]["gRecursionDepth"] = uint32_t(mRecursionDepth);
     rayGenVars["RayGenCB"]["gDoGI"] = mDoGI;
     rayGenVars["gWsPos"] = mpResManager->getTexture("WorldPosition");     

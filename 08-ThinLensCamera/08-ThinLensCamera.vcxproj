@@ -13,8 +13,6 @@
   <ItemGroup>
     <ClCompile Include="..\05-AmbientOcclusion\Passes\RayTracedAmbientOcclusionPass.cpp" />
     <ClCompile Include="..\06-TemporalAccumulation\Passes\TemporalAccumulationPass.cpp" />
-    <ClCompile Include="..\CommonPasses\AmbientOcclusionPass.cpp" />
-    <ClCompile Include="..\CommonPasses\SimpleAccumulationPass.cpp" />
     <ClCompile Include="..\SharedUtils\FullscreenLaunch.cpp" />
     <ClCompile Include="..\SharedUtils\RasterLaunch.cpp" />
     <ClCompile Include="..\SharedUtils\RayLaunch.cpp" />
@@ -29,8 +27,6 @@
   <ItemGroup>
     <ClInclude Include="..\05-AmbientOcclusion\Passes\RayTracedAmbientOcclusionPass.h" />
     <ClInclude Include="..\06-TemporalAccumulation\Passes\TemporalAccumulationPass.h" />
-    <ClInclude Include="..\CommonPasses\AmbientOcclusionPass.h" />
-    <ClInclude Include="..\CommonPasses\SimpleAccumulationPass.h" />
     <ClInclude Include="..\SharedUtils\FullscreenLaunch.h" />
     <ClInclude Include="..\SharedUtils\RasterLaunch.h" />
     <ClInclude Include="..\SharedUtils\RayLaunch.h" />

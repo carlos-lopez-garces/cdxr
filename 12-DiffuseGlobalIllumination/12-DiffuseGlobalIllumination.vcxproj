@@ -11,8 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\CommonPasses\LightProbeGBufferPass.cpp" />
-    <ClCompile Include="..\CommonPasses\SimpleAccumulationPass.cpp" />
+    <ClCompile Include="..\06-TemporalAccumulation\Passes\TemporalAccumulationPass.cpp" />
+    <ClCompile Include="..\08-ThinLensCamera\Passes\ThinLensGBufferPass.cpp" />
     <ClCompile Include="..\SharedUtils\FullscreenLaunch.cpp" />
     <ClCompile Include="..\SharedUtils\RayLaunch.cpp" />
     <ClCompile Include="..\SharedUtils\RenderingPipeline.cpp" />
@@ -20,12 +20,12 @@
     <ClCompile Include="..\SharedUtils\ResourceManager.cpp" />
     <ClCompile Include="..\SharedUtils\SceneLoaderWrapper.cpp" />
     <ClCompile Include="..\SharedUtils\SimpleVars.cpp" />
-    <ClCompile Include="Passes\SimpleDiffuseGIPass.cpp" />
-    <ClCompile Include="Tutor12-DiffuseGlobalIllumination.cpp" />
+    <ClCompile Include="DiffuseGlobalIllumination.cpp" />
+    <ClCompile Include="Passes\DiffuseGIPass.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\CommonPasses\LightProbeGBufferPass.h" />
-    <ClInclude Include="..\CommonPasses\SimpleAccumulationPass.h" />
+    <ClInclude Include="..\06-TemporalAccumulation\Passes\TemporalAccumulationPass.h" />
+    <ClInclude Include="..\08-ThinLensCamera\Passes\ThinLensGBufferPass.h" />
     <ClInclude Include="..\SharedUtils\FullscreenLaunch.h" />
     <ClInclude Include="..\SharedUtils\RayLaunch.h" />
     <ClInclude Include="..\SharedUtils\RenderingPipeline.h" />
@@ -33,7 +33,7 @@
     <ClInclude Include="..\SharedUtils\ResourceManager.h" />
     <ClInclude Include="..\SharedUtils\SceneLoaderWrapper.h" />
     <ClInclude Include="..\SharedUtils\SimpleVars.h" />
-    <ClInclude Include="Passes\SimpleDiffuseGIPass.h" />
+    <ClInclude Include="Passes\DiffuseGIPass.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Data\Tutorial12\simpleDiffuseGI.rt.hlsl">

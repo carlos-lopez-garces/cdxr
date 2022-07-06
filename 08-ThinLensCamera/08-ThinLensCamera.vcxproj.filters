@@ -27,12 +27,6 @@
     <ClInclude Include="..\SharedUtils\SimpleVars.h">
       <Filter>SharedUtils</Filter>
     </ClInclude>
-    <ClInclude Include="..\CommonPasses\AmbientOcclusionPass.h">
-      <Filter>CommonPasses</Filter>
-    </ClInclude>
-    <ClInclude Include="..\CommonPasses\SimpleAccumulationPass.h">
-      <Filter>CommonPasses</Filter>
-    </ClInclude>
     <ClInclude Include="Passes\ThinLensGBufferPass.h">
       <Filter>Passes</Filter>
     </ClInclude>
@@ -67,12 +61,6 @@
     </ClCompile>
     <ClCompile Include="..\SharedUtils\SimpleVars.cpp">
       <Filter>SharedUtils</Filter>
-    </ClCompile>
-    <ClCompile Include="..\CommonPasses\AmbientOcclusionPass.cpp">
-      <Filter>CommonPasses</Filter>
-    </ClCompile>
-    <ClCompile Include="..\CommonPasses\SimpleAccumulationPass.cpp">
-      <Filter>CommonPasses</Filter>
     </ClCompile>
     <ClCompile Include="Passes\ThinLensGBufferPass.cpp">
       <Filter>Passes</Filter>
