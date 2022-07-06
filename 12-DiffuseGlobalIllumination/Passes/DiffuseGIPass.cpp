@@ -15,6 +15,9 @@ namespace {
     const char *kEntryPointShadowClosestHit = "ShadowClosestHit";
     const char *kEntryPointShadowAnyHit = "ShadowAnyHit";
     const char *kEntryPointShadowMiss = "ShadowMiss";
+
+    // Environment map file.
+    const char* kEnvironmentMap = "MonValley_G_DirtRoad_3k.hdr";
 };
 
 bool DiffuseGIPass::initialize(RenderContext* pRenderContext, ResourceManager::SharedPtr pResManager) {
@@ -24,6 +27,8 @@ bool DiffuseGIPass::initialize(RenderContext* pRenderContext, ResourceManager::S
         "WorldPosition", "WorldNormal", "MaterialDiffuse"
     });
     mpResManager->requestTextureResource(ResourceManager::kOutputChannel);
+
+    mpResManager->updateEnvironmentMap(kEnvironmentMap);
 
     mpResManager->setDefaultSceneName("Data/pink_room/pink_room.fscene");
 
@@ -69,6 +74,10 @@ void DiffuseGIPass::execute(RenderContext* pRenderContext) {
 	rayGenVars["gWsNorm"] = mpResManager->getTexture("WorldNormal");
 	rayGenVars["gMatDif"] = mpResManager->getTexture("MaterialDiffuse");
 	rayGenVars["gOutput"] = outputTex;
+
+    auto missVars = mpRayTracer->getMissVars(0);
+    // Color sampled by all rays that escape the scene without hitting anything. Constant buffer.
+    missVars["gEnvMap"] = mpResManager->getTexture(ResourceManager::kEnvironmentMap);
 
     mpRayTracer->execute(pRenderContext, mpResManager->getScreenSize());
 }

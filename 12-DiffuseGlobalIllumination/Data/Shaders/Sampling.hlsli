@@ -26,3 +26,13 @@ float3 getCosHemisphereSample(inout uint seed, float3 hitNormal) {
     // basis vectors.
     return (r*cos(phi))*tangent + (r*sin(phi))*bitangent + sqrt(1-randVal.x)*hitNormal;
 }
+
+#define M_1_PI  0.318309886183790671538
+
+// Convert world space direction to a (u,v) coordindate in a latitude-longitude spherical map.
+float2 WorldToLatitudeLongitude(float3 dir) {
+	float3 p = normalize(dir);
+	float u = (1.f + atan2(p.x, -p.z) * M_1_PI) * 0.5f;
+	float v = acos(p.y) * M_1_PI;
+	return float2(u, v);
+}

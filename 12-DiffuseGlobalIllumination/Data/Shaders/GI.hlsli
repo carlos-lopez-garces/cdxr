@@ -3,6 +3,9 @@ struct GIRayPayload {
     uint randSeed;
 };
 
+// Environment map;
+Texture2D<float4> gEnvMap;
+
 float4 shootGIRay(float3 surfacePoint, float3 surfaceNormal, float4 surfaceColor, uint randSeed) {
     // Indirect illumination.
     float3 bounceDirection = getCosHemisphereSample(randSeed, surfaceNormal);
@@ -56,5 +59,12 @@ void GIAnyHit(inout GIRayPayload payload, BuiltInTriangleIntersectionAttributes 
 
 [shader("miss")]
 void GIMiss(inout GIRayPayload payload) {
+    uint2 pixelIndex = DispatchRaysIndex().xy;
 
+	float2 envMapDimensions;
+	gEnvMap.GetDimensions(envMapDimensions.x, envMapDimensions.y);
+
+	float2 uv = WorldToLatitudeLongitude(WorldRayDirection());
+
+    payload.sampledInterreflectionColor = float4(gEnvMap[uint2(uv * envMapDimensions)].rgb, 1.0f);
 }
