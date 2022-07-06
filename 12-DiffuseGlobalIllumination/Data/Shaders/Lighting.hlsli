@@ -12,7 +12,7 @@ void getLightData(in int index, in float3 hitPos, out float3 directionToLight, o
 	distanceToLight = length(ls.posW - hitPos);
 }
 
-float3 sampleLight(int lightIndex, float3 worldPosition, float3 worldNormal, bool shadows, float minT) {
+float3 sampleLight(int lightIndex, float3 worldPosition, float3 worldNormal, bool doShadows, float minT) {
     float distanceToLight;
     float3 lightIntensity;
     float3 directionToLight;
@@ -22,8 +22,8 @@ float3 sampleLight(int lightIndex, float3 worldPosition, float3 worldNormal, boo
     float LdotN = saturate(dot(directionToLight, worldNormal));
 
     float shadowFactor = float(gLightsCount);
-    if (shadows) {
-        shadowFactor = shootShadowRay(worldPosition, directionToLight, minT, distanceToLight);
+    if (doShadows) {
+        shadowFactor *= shootShadowRay(worldPosition, directionToLight, minT, distanceToLight);
     }
 
     return lightIntensity * LdotN * shadowFactor / M_PI;

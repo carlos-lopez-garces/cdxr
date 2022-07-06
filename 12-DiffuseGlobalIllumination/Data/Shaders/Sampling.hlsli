@@ -27,6 +27,18 @@ float3 getCosHemisphereSample(inout uint seed, float3 hitNormal) {
     return (r*cos(phi))*tangent + (r*sin(phi))*bitangent + sqrt(1-randVal.x)*hitNormal;
 }
 
+// Uniform sampling of the hemisphere of directions.
+float3 getUniformHemisphereSample(inout uint seed, float3 hitNormal) {
+	float2 randVal = float2(nextRand(seed), nextRand(seed));
+
+	float3 bitangent = getPerpendicularVector(hitNormal);
+	float3 tangent = cross(bitangent, hitNormal);
+	float r = sqrt(max(0.0f,1.0f - randVal.x*randVal.x));
+	float phi = 2.0f * 3.14159265f * randVal.y;
+
+	return tangent * (r * cos(phi).x) + bitangent * (r * sin(phi)) + hitNormal.xyz * randVal.x;
+}
+
 #define M_1_PI  0.318309886183790671538
 
 // Convert world space direction to a (u,v) coordindate in a latitude-longitude spherical map.

@@ -22,6 +22,7 @@ cbuffer RayGenCB {
     uint gRecursionDepth;
     bool gDoDirectShadows;
     bool gDoGI;
+    bool gDoCosineSampling;
 };
 
 [shader("raygeneration")]
@@ -50,7 +51,7 @@ void DiffuseGIRayGen() {
 
         // Indirect illumination.
         if (gDoGI) {
-            float4 interreflectionColor = shootGIRay(gWsPos[pixelIndex].xyz, gWsNorm[pixelIndex].xyz, pixelDiffuseColor, randSeed);
+            float4 interreflectionColor = shootGIRay(gWsPos[pixelIndex].xyz, gWsNorm[pixelIndex].xyz, pixelDiffuseColor, randSeed, gDoDirectShadows, gDoCosineSampling);
             shadeColor += interreflectionColor;
         }
 

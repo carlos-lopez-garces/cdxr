@@ -1,14 +1,21 @@
 struct GIRayPayload {
     float4 sampledInterreflectionColor;
     uint randSeed;
+    bool doShadows;
 };
 
 // Environment map;
 Texture2D<float4> gEnvMap;
 
-float4 shootGIRay(float3 surfacePoint, float3 surfaceNormal, float4 surfaceColor, uint randSeed) {
+float4 shootGIRay(float3 surfacePoint, float3 surfaceNormal, float4 surfaceColor, uint randSeed, bool doShadows, bool doCosineSampling) {
     // Indirect illumination.
-    float3 bounceDirection = getCosHemisphereSample(randSeed, surfaceNormal);
+    float3 bounceDirection;
+    if (doCosineSampling) {
+        bounceDirection = getCosHemisphereSample(randSeed, surfaceNormal);
+    } else {
+        bounceDirection = getUniformHemisphereSample(randSeed, surfaceNormal);
+    }
+
     RayDesc ray;
     ray.Origin = surfacePoint;
     ray.Direction = bounceDirection;
@@ -17,11 +24,18 @@ float4 shootGIRay(float3 surfacePoint, float3 surfaceNormal, float4 surfaceColor
 
     // Lambertian factor.
     float BdotN = saturate(dot(bounceDirection, surfaceNormal));
-    float bouncePdf = BdotN / M_PI;
+
+    float bouncePdf;
+    if (doCosineSampling) {
+        bouncePdf = BdotN / M_PI;
+    } else {
+        bouncePdf = 1.0f / (2.0f * M_PI);
+    }
 
     GIRayPayload payload;
     payload.sampledInterreflectionColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
     payload.randSeed = randSeed;
+    payload.doShadows = doShadows;
 
     TraceRay(
         gRtScene,
@@ -47,7 +61,7 @@ void GIClosestHit(inout GIRayPayload payload, BuiltInTriangleIntersectionAttribu
     ShadingData shadeData = getShadingData(PrimitiveIndex(), attributes);
 
     int lightToSample = min(int(nextRand(payload.randSeed) * gLightsCount), gLightsCount - 1);
-    payload.sampledInterreflectionColor = float4(shadeData.diffuse.rgb * sampleLight(lightToSample, shadeData.posW, shadeData.N, gDoDirectShadows, gTMin), 1.0f);
+    payload.sampledInterreflectionColor = float4(shadeData.diffuse.rgb * sampleLight(lightToSample, shadeData.posW, shadeData.N, payload.doShadows, gTMin), 1.0f);
 }
 
 [shader("anyhit")]
@@ -59,8 +73,6 @@ void GIAnyHit(inout GIRayPayload payload, BuiltInTriangleIntersectionAttributes 
 
 [shader("miss")]
 void GIMiss(inout GIRayPayload payload) {
-    uint2 pixelIndex = DispatchRaysIndex().xy;
-
 	float2 envMapDimensions;
 	gEnvMap.GetDimensions(envMapDimensions.x, envMapDimensions.y);
 

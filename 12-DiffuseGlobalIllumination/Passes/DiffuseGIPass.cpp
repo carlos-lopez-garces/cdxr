@@ -15,9 +15,6 @@ namespace {
     const char *kEntryPointShadowClosestHit = "ShadowClosestHit";
     const char *kEntryPointShadowAnyHit = "ShadowAnyHit";
     const char *kEntryPointShadowMiss = "ShadowMiss";
-
-    // Environment map file.
-    const char* kEnvironmentMap = "MonValley_G_DirtRoad_3k.hdr";
 };
 
 bool DiffuseGIPass::initialize(RenderContext* pRenderContext, ResourceManager::SharedPtr pResManager) {
@@ -27,8 +24,7 @@ bool DiffuseGIPass::initialize(RenderContext* pRenderContext, ResourceManager::S
         "WorldPosition", "WorldNormal", "MaterialDiffuse"
     });
     mpResManager->requestTextureResource(ResourceManager::kOutputChannel);
-
-    mpResManager->updateEnvironmentMap(kEnvironmentMap);
+    mpResManager->requestTextureResource(ResourceManager::kEnvironmentMap);
 
     mpResManager->setDefaultSceneName("Data/pink_room/pink_room.fscene");
 
@@ -41,6 +37,7 @@ bool DiffuseGIPass::initialize(RenderContext* pRenderContext, ResourceManager::S
     // Ray type / hit group 1: GI rays.
     mpRayTracer->addHitShader(kShaderFile, kEntryPointGIClosestHit, kEntryPointGIAnyHit);
     mpRayTracer->addMissShader(kShaderFile, kEntryPointGIMiss);
+
 
     mpRayTracer->compileRayProgram();
     if (mpScene) {
@@ -68,6 +65,7 @@ void DiffuseGIPass::execute(RenderContext* pRenderContext) {
     rayGenVars["RayGenCB"]["gTMin"] = mpResManager->getMinTDist();
     rayGenVars["RayGenCB"]["gTMax"] = FLT_MAX;
     rayGenVars["RayGenCB"]["gDoDirectShadows"] = mDoDirectShadows;
+    rayGenVars["RayGenCB"]["gDoDirectShadows"] = mDoCosSampling;
     rayGenVars["RayGenCB"]["gRecursionDepth"] = uint32_t(mRecursionDepth);
     rayGenVars["RayGenCB"]["gDoGI"] = mDoGI;
     rayGenVars["gWsPos"] = mpResManager->getTexture("WorldPosition");     
@@ -75,6 +73,8 @@ void DiffuseGIPass::execute(RenderContext* pRenderContext) {
 	rayGenVars["gMatDif"] = mpResManager->getTexture("MaterialDiffuse");
 	rayGenVars["gOutput"] = outputTex;
 
+    // TODO: should be 1 instead of 0, because it is hitgroup 1 that uses gEnvMap; but if set to 1,
+    // the render doesn't converge and there are very bright pixels.
     auto missVars = mpRayTracer->getMissVars(0);
     // Color sampled by all rays that escape the scene without hitting anything. Constant buffer.
     missVars["gEnvMap"] = mpResManager->getTexture(ResourceManager::kEnvironmentMap);
@@ -88,6 +88,8 @@ void DiffuseGIPass::renderGui(Gui* pGui) {
     dirty |= (int)pGui->addCheckBox(mDoDirectShadows ? "Shoot shadow rays" : "Don't shoot shadow rays", mDoDirectShadows);
 
     dirty |= (int)pGui->addCheckBox(mDoGI ? "Shoot GI rays" : "Don't shoot GI rays", mDoGI);
+
+    dirty |= (int)pGui->addCheckBox(mDoCosSampling ? "Cosine-weighted hemisphere sampling" : "Uniform hemisphere sampling", mDoCosSampling);
 
     pGui->addText("     ");
     dirty |= (int)pGui->addIntVar("Recursion depth", mRecursionDepth, 0, INT32_MAX);
