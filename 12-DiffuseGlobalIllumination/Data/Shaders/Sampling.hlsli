@@ -48,3 +48,26 @@ float2 WorldToLatitudeLongitude(float3 dir) {
 	float v = acos(p.y) * M_1_PI;
 	return float2(u, v);
 }
+
+// Offsets a ray origin from current position p, along normal n (which must be geometric normal)
+// so that no self-intersection can occur. See Ray Tracing Gems Ch. 6: A Fast and Robust Method
+// for Avoiding Self-Intersection.
+float3 offsetRayOrigin(const float3 p, const float3 n) {
+	static const float origin = 1.0f / 32.0f;
+	static const float float_scale = 1.0f / 65536.0f;
+	static const float int_scale = 256.0f;
+
+	int3 of_i = int3(int_scale * n.x, int_scale * n.y, int_scale * n.z);
+
+	float3 p_i = float3(
+		asfloat(asint(p.x) + ((p.x < 0) ? -of_i.x : of_i.x)),
+		asfloat(asint(p.y) + ((p.y < 0) ? -of_i.y : of_i.y)),
+		asfloat(asint(p.z) + ((p.z < 0) ? -of_i.z : of_i.z))
+	);
+
+	return float3(
+		abs(p.x) < origin ? p.x + float_scale * n.x : p_i.x,
+		abs(p.y) < origin ? p.y + float_scale * n.y : p_i.y,
+		abs(p.z) < origin ? p.z + float_scale * n.z : p_i.z
+	);
+}
