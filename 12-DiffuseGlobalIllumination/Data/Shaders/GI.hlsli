@@ -9,7 +9,7 @@ struct GIRayPayload {
 // Environment map;
 Texture2D<float4> gEnvMap;
 
-float4 shootGIRay(SurfaceInteraction si, uint randSeed, bool doShadows, bool doCosineSampling, inout GIRayPayload payload) {
+float4 shootGIRay(inout SurfaceInteraction si, uint randSeed, bool doShadows, bool doCosineSampling) {
     // Indirect illumination.
     float3 bounceDirection;
     if (doCosineSampling) {
@@ -34,6 +34,7 @@ float4 shootGIRay(SurfaceInteraction si, uint randSeed, bool doShadows, bool doC
         bouncePdf = 1.0f / (2.0f * M_PI);
     }
 
+    GIRayPayload payload;
     payload.sampledInterreflectionColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
     payload.randSeed = randSeed;
     payload.doShadows = doShadows;

@@ -51,9 +51,8 @@ void DiffuseGIRayGen() {
 
         // Indirect illumination.
         if (gDoGI) {
-            GIRayPayload payload;
             SurfaceInteraction si; si.p = gWsPos[pixelIndex].xyz; si.n = gWsNorm[pixelIndex].xyz; si.color = pixelDiffuseColor;
-            float4 interreflectionColor = shootGIRay(si, randSeed, gDoDirectShadows, gDoCosineSampling, payload);
+            float4 interreflectionColor = shootGIRay(si, randSeed, gDoDirectShadows, gDoCosineSampling);
             shadeColor += interreflectionColor;
         }
 
