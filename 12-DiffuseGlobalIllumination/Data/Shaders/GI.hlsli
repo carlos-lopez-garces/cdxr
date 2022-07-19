@@ -1,3 +1,5 @@
+#include "Geometry.hlsli"
+
 struct GIRayPayload {
     float4 sampledInterreflectionColor;
     uint randSeed;
@@ -7,23 +9,23 @@ struct GIRayPayload {
 // Environment map;
 Texture2D<float4> gEnvMap;
 
-float4 shootGIRay(float3 surfacePoint, float3 surfaceNormal, float4 surfaceColor, uint randSeed, bool doShadows, bool doCosineSampling) {
+float4 shootGIRay(SurfaceInteraction si, uint randSeed, bool doShadows, bool doCosineSampling, inout GIRayPayload payload) {
     // Indirect illumination.
     float3 bounceDirection;
     if (doCosineSampling) {
-        bounceDirection = getCosHemisphereSample(randSeed, surfaceNormal);
+        bounceDirection = getCosHemisphereSample(randSeed, si.n);
     } else {
-        bounceDirection = getUniformHemisphereSample(randSeed, surfaceNormal);
+        bounceDirection = getUniformHemisphereSample(randSeed, si.n);
     }
 
     RayDesc ray;
-    ray.Origin = surfacePoint;
+    ray.Origin = si.p;
     ray.Direction = bounceDirection;
     ray.TMin = gTMin;
     ray.TMax = gTMax;
 
     // Lambertian factor.
-    float BdotN = saturate(dot(bounceDirection, surfaceNormal));
+    float BdotN = saturate(dot(bounceDirection, si.n));
 
     float bouncePdf;
     if (doCosineSampling) {
@@ -32,7 +34,6 @@ float4 shootGIRay(float3 surfacePoint, float3 surfaceNormal, float4 surfaceColor
         bouncePdf = 1.0f / (2.0f * M_PI);
     }
 
-    GIRayPayload payload;
     payload.sampledInterreflectionColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
     payload.randSeed = randSeed;
     payload.doShadows = doShadows;
@@ -51,7 +52,7 @@ float4 shootGIRay(float3 surfacePoint, float3 surfaceNormal, float4 surfaceColor
         payload,
     );
 
-    return (payload.sampledInterreflectionColor * surfaceColor * BdotN / M_PI) / bouncePdf;
+    return (payload.sampledInterreflectionColor * si.color * BdotN / M_PI) / bouncePdf;
 }
 
 [shader("closesthit")]
