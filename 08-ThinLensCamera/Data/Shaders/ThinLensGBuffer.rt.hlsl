@@ -2,6 +2,7 @@
 import Raytracing;
 import ShaderCommon;
 import Shading;
+#include "Constants.hlsli"
 #include "AlphaTesting.hlsli"
 #include "Sampling.hlsli"
 
