@@ -43,11 +43,11 @@ float4 shootGIRay(SurfaceInteraction si, uint randSeed, bool doShadows, bool doC
         RAY_FLAG_NONE,
         0xFF,
         // Hit group #0.
-        1,
+        STANDARD_RAY_HIT_GROUP,
         // hitProgramCount is supplied by the framework and is the number of hit groups that exist.
         hitProgramCount,
         // Miss shader?
-        1,
+        STANDARD_RAY_HIT_GROUP,
         ray,
         payload,
     );

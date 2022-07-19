@@ -31,10 +31,10 @@ float shootShadowRay(float3 origin, float3 direction, float minT, float maxT) {
         RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER,
         0xFF,
         // Hit group #0.
-        0,
+        SHADOW_RAY_HIT_GROUP,
         // hitProgramCount is supplied by the framework and is the number of hit groups that exist.
         hitProgramCount,
-        0,
+        SHADOW_RAY_HIT_GROUP,
         shadowRay,
         payload
     );

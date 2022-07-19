@@ -4,6 +4,7 @@ import Raytracing;
 import ShaderCommon;
 import Shading;     
 import Lights;
+#include "Constants.hlsli"
 #include "Shadows.hlsli"
 #include "Lighting.hlsli"
 #include "GI.hlsli"
