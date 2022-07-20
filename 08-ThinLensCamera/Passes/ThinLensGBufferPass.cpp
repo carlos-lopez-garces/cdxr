@@ -21,7 +21,7 @@ bool ThinLensGBufferPass::initialize(Falcor::RenderContext *pRenderContext, Reso
     // Request G-Buffer textures.
     mpResManager->requestTextureResources({
         // Channels.
-        "WorldPosition", "WorldNormal", "MaterialDiffuse", "MaterialSpecRough", "MaterialExtraParams"
+        "WorldPosition", "WorldNormal", "WorldShadingNormal", "MaterialDiffuse", "MaterialSpecRough", "MaterialExtraParams"
     });
 
     mpResManager->updateEnvironmentMap(kEnvironmentMap);
@@ -57,6 +57,7 @@ void ThinLensGBufferPass::execute(Falcor::RenderContext *pRenderContext) {
     // Load G-Buffer textures.
     Falcor::Texture::SharedPtr worldSpacePosition = mpResManager->getClearedTexture("WorldPosition", vec4(0, 0, 0, 0));
     Falcor::Texture::SharedPtr worldSpaceNormal = mpResManager->getClearedTexture("WorldNormal", vec4(0, 0, 0, 0));
+    Falcor::Texture::SharedPtr worldSpaceShadingNormal = mpResManager->getClearedTexture("WorldShadingNormal", vec4(0, 0, 0, 0));
     Falcor::Texture::SharedPtr materialDiffuse = mpResManager->getClearedTexture("MaterialDiffuse", vec4(0, 0, 0, 0));
     Falcor::Texture::SharedPtr materialSpecularRoughness = mpResManager->getClearedTexture("MatSpecRough", vec4(0, 0, 0, 0));
     Falcor::Texture::SharedPtr materialExtraParams = mpResManager->getClearedTexture("MaterialExtraParams", vec4(0, 0, 0, 0));
@@ -72,6 +73,7 @@ void ThinLensGBufferPass::execute(Falcor::RenderContext *pRenderContext) {
     for (auto hitVars : mpRayTracer->getHitVars(0)) {
         hitVars["gWsPos"] = worldSpacePosition;
         hitVars["gWsNorm"] = worldSpaceNormal;
+        hitVars["gWsShadingNorm"] = worldSpaceShadingNormal;
         hitVars["gMatDif"] = materialDiffuse;
         hitVars["gMatSpec"] = materialSpecularRoughness;
         hitVars["gMatExtra"] = materialExtraParams;

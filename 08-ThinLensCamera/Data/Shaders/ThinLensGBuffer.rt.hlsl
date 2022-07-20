@@ -9,6 +9,7 @@ import Shading;
 // G-Buffer.
 RWTexture2D<float4> gWsPos;
 RWTexture2D<float4> gWsNorm;
+RWTexture2D<float4> gWsShadingNorm;
 RWTexture2D<float4> gMatDif;
 RWTexture2D<float4> gMatSpec;
 RWTexture2D<float4> gMatExtra;
@@ -108,8 +109,9 @@ void PrimaryClosestHit(inout RayPayload payload, BuiltInTriangleIntersectionAttr
 	// Supplied by Falcor.
 	ShadingData shadeData = prepareShadingData(vsOut, gMaterial, gCamera.posW, 0);
 
-	gWsPos[pixelIndex] = float4(shadeData.posW, 1.0f);
-	gWsNorm[pixelIndex] = float4(shadeData.N, 0.0f);
+	gWsPos[pixelIndex] = float4(vsOut.posW, 1.0f);
+	gWsNorm[pixelIndex] = float4(vsOut.normalW, 0.0f);
+	gWsShadingNorm[pixelIndex] = float4(shadeData.N, 0.0f);
 	gMatDif[pixelIndex] = float4(shadeData.diffuse, shadeData.opacity);
 	gMatSpec[pixelIndex] = float4(shadeData.specular, shadeData.linearRoughness);
 	// Includes Index of Refraction and whether the material is double-sided.
