@@ -39,8 +39,6 @@ float3 getUniformHemisphereSample(inout uint seed, float3 hitNormal) {
 	return tangent * (r * cos(phi).x) + bitangent * (r * sin(phi)) + hitNormal.xyz * randVal.x;
 }
 
-#define M_1_PI  0.318309886183790671538
-
 // Convert world space direction to a (u,v) coordindate in a latitude-longitude spherical map.
 float2 WorldToLatitudeLongitude(float3 dir) {
 	float3 p = normalize(dir);
@@ -53,9 +51,10 @@ float2 WorldToLatitudeLongitude(float3 dir) {
 // so that no self-intersection can occur. See Ray Tracing Gems Ch. 6: A Fast and Robust Method
 // for Avoiding Self-Intersection.
 float3 offsetRayOrigin(const float3 p, const float3 n) {
-	static const float origin = 1.0f / 32.0f;
-	static const float float_scale = 1.0f / 65536.0f;
-	static const float int_scale = 256.0f;
+	// Don't declare 'static' variables. The keyword causes slang run-time failures.
+	const float origin = 1.0f / 32.0f;
+	const float float_scale = 1.0f / 65536.0f;
+	const float int_scale = 256.0f;
 
 	int3 of_i = int3(int_scale * n.x, int_scale * n.y, int_scale * n.z);
 
