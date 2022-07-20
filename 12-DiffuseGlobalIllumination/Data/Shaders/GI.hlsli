@@ -3,13 +3,19 @@
 struct GIRayPayload {
     float4 sampledInterreflectionColor;
     uint randSeed;
-    bool doShadows;
+    float3 shadingNormal;
+    float3 emissive;
+    float3 hitPoint;
+};
+
+cbuffer GIClosestHitVars {
+    bool gDoShadows;
 };
 
 // Environment map;
 Texture2D<float4> gEnvMap;
 
-float4 shootGIRay(inout SurfaceInteraction si, uint randSeed, bool doShadows, bool doCosineSampling) {
+float4 shootGIRay(inout SurfaceInteraction si, uint randSeed, bool doCosineSampling) {
     // Indirect illumination.
     float3 bounceDirection;
     if (doCosineSampling) {
@@ -37,7 +43,6 @@ float4 shootGIRay(inout SurfaceInteraction si, uint randSeed, bool doShadows, bo
     GIRayPayload payload;
     payload.sampledInterreflectionColor = float4(0.0f, 0.0f, 0.0f, 0.0f);
     payload.randSeed = randSeed;
-    payload.doShadows = doShadows;
 
     TraceRay(
         gRtScene,
@@ -53,6 +58,10 @@ float4 shootGIRay(inout SurfaceInteraction si, uint randSeed, bool doShadows, bo
         payload,
     );
 
+    si.emissive = payload.emissive;
+    si.shadingNormal = payload.shadingNormal;
+    si.p = payload.hitPoint;
+
     return (payload.sampledInterreflectionColor * si.color * BdotN / M_PI) / bouncePdf;
 }
 
@@ -60,10 +69,14 @@ float4 shootGIRay(inout SurfaceInteraction si, uint randSeed, bool doShadows, bo
 void GIClosestHit(inout GIRayPayload payload, BuiltInTriangleIntersectionAttributes attributes) {
     // PrimitiveIndex() is an object introspection intrinsic that returns
     // the identifier of the current primitive.
-    ShadingData shadeData = getShadingData(PrimitiveIndex(), attributes);
+    ShadingData shadingData = getShadingData(PrimitiveIndex(), attributes);
 
     int lightToSample = min(int(nextRand(payload.randSeed) * gLightsCount), gLightsCount - 1);
-    payload.sampledInterreflectionColor = float4(shadeData.diffuse.rgb * sampleLight(lightToSample, shadeData.posW, shadeData.N, payload.doShadows, gTMin), 1.0f);
+    payload.sampledInterreflectionColor = float4(shadingData.diffuse.rgb * sampleLight(lightToSample, shadingData.posW, shadingData.N, gDoShadows, gTMin), 1.0f);
+    payload.emissive = shadingData.emissive;
+    // shadingData.N is shading normal.
+    payload.shadingNormal = shadingData.N;
+    payload.hitPoint = shadingData.posW;
 }
 
 [shader("anyhit")]

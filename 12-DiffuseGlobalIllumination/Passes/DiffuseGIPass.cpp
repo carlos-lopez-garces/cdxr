@@ -72,6 +72,12 @@ void DiffuseGIPass::execute(RenderContext* pRenderContext) {
 	rayGenVars["gMatDif"] = mpResManager->getTexture("MaterialDiffuse");
 	rayGenVars["gOutput"] = outputTex;
 
+    // Ray payload size is limited to 65 bytes, so pass directly as much data to the shader as
+    // possible.
+    for (auto hitVars : mpRayTracer->getHitVars(0)) {
+        hitVars["GIClosestHitVars"]["gDoDirectShadows"] = mDoDirectShadows;
+    }
+
     // TODO: should be 1 instead of 0, because it is hitgroup 1 that uses gEnvMap; but if set to 1,
     // the render doesn't converge and there are very bright pixels.
     auto missVars = mpRayTracer->getMissVars(0);

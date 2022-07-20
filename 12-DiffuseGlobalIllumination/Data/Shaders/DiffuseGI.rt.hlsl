@@ -5,8 +5,10 @@ import ShaderCommon;
 import Shading;     
 import Lights;
 #include "Constants.hlsli"
+#include "AlphaTesting.hlsli"
 #include "Shadows.hlsli"
 #include "Lighting.hlsli"
+#include "Sampling.hlsli"
 #include "GI.hlsli"
 
 // G-Buffer.
@@ -52,7 +54,7 @@ void DiffuseGIRayGen() {
         // Indirect illumination.
         if (gDoGI) {
             SurfaceInteraction si; si.p = gWsPos[pixelIndex].xyz; si.n = gWsNorm[pixelIndex].xyz; si.color = pixelDiffuseColor;
-            float4 interreflectionColor = shootGIRay(si, randSeed, gDoDirectShadows, gDoCosineSampling);
+            float4 interreflectionColor = shootGIRay(si, randSeed, gDoCosineSampling);
             shadeColor += interreflectionColor;
         }
 
