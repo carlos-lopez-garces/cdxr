@@ -21,7 +21,13 @@ bool ThinLensGBufferPass::initialize(Falcor::RenderContext *pRenderContext, Reso
     // Request G-Buffer textures.
     mpResManager->requestTextureResources({
         // Channels.
-        "WorldPosition", "WorldNormal", "WorldShadingNormal", "MaterialDiffuse", "MaterialSpecRough", "MaterialExtraParams"
+        "WorldPosition",
+        "WorldNormal",
+        "WorldShadingNormal",
+        "MaterialDiffuse",
+        "MaterialSpecRough",
+        "MaterialExtraParams", 
+        "MaterialEmissive"
     });
 
     mpResManager->updateEnvironmentMap(kEnvironmentMap);
@@ -61,6 +67,7 @@ void ThinLensGBufferPass::execute(Falcor::RenderContext *pRenderContext) {
     Falcor::Texture::SharedPtr materialDiffuse = mpResManager->getClearedTexture("MaterialDiffuse", vec4(0, 0, 0, 0));
     Falcor::Texture::SharedPtr materialSpecularRoughness = mpResManager->getClearedTexture("MatSpecRough", vec4(0, 0, 0, 0));
     Falcor::Texture::SharedPtr materialExtraParams = mpResManager->getClearedTexture("MaterialExtraParams", vec4(0, 0, 0, 0));
+    Falcor::Texture::SharedPtr materialEmissive = mpResManager->getClearedTexture("MaterialEmissive", vec4(0, 0, 0, 0));
 
     // Lens parameters are relevant when computing primary ray origins, so they go in the ray
     // generation shader.
@@ -77,6 +84,7 @@ void ThinLensGBufferPass::execute(Falcor::RenderContext *pRenderContext) {
         hitVars["gMatDif"] = materialDiffuse;
         hitVars["gMatSpec"] = materialSpecularRoughness;
         hitVars["gMatExtra"] = materialExtraParams;
+        hitVars["gMatEmissive"] = materialEmissive;
     }
 
     auto missVars = mpRayTracer->getMissVars(0);

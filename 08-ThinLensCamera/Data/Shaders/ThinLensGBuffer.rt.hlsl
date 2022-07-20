@@ -13,6 +13,7 @@ RWTexture2D<float4> gWsShadingNorm;
 RWTexture2D<float4> gMatDif;
 RWTexture2D<float4> gMatSpec;
 RWTexture2D<float4> gMatExtra;
+RWTexture2D<float4> gMatEmissive;
 // Environment map;
 Texture2D<float4> gEnvMap;
 
@@ -116,6 +117,7 @@ void PrimaryClosestHit(inout RayPayload payload, BuiltInTriangleIntersectionAttr
 	gMatSpec[pixelIndex] = float4(shadeData.specular, shadeData.linearRoughness);
 	// Includes Index of Refraction and whether the material is double-sided.
 	gMatExtra[pixelIndex] = float4(shadeData.IoR, shadeData.doubleSidedMaterial ? 1.f : 0.f, 0.f, 0.f);
+	gMatEmissive[pixelIndex] = float4(shadeData.emissive, 1.0f);
 }
 
 [shader("anyhit")]
