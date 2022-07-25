@@ -2,6 +2,13 @@ struct SurfaceInteraction {
 	float3 p;
 	float3 n;
 	float4 color;
+	float3 shadingNormal;
+	float16_t2 uvs;
+	float3 emissive;
+
+	bool hasHit() {
+		return !(shadingNormal.x == 0 && shadingNormal.y == 0 && shadingNormal.z == 0);
+	}
 };
 
 float2 octWrap(float2 v) {
