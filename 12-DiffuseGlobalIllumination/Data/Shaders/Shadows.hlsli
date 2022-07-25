@@ -5,9 +5,6 @@ import Raytracing;
 import ShaderCommon;
 import Shading;     
 import Lights;
-#include "AlphaTesting.hlsli"
-// Already includes PRNG.hlsli.
-#include "Sampling.hlsli"
 
 // Payload for shadow rays.
 struct ShadowRayPayload {
