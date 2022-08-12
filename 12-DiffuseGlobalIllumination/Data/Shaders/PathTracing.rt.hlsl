@@ -11,6 +11,7 @@ import Lights;
 #include "Shadows.hlsli"
 #include "Lighting.hlsli"
 #include "BxDF.hlsli"
+#include "Integrators/Path.hlsli"
 
 Texture2D<float4> gWsPos;
 // Shading normal.
@@ -51,53 +52,9 @@ void PathTracingRayGen() {
     si.color = gMatDif[pixelIndex];
     si.emissive = gMatEmissive[pixelIndex].rgb;
     
-    for (int bounce = 0; bounce < gMaxBounces; ++bounce) {
-        L += throughput * si.emissive;
-
-        // Direct illumination.
-        // gLightsCount and getLightData() are automatically imported by Falcor.
-        int lightToSample = min(int(nextRand(randSeed) * gLightsCount), gLightsCount - 1);
-        L += throughput * si.color.rgb * sampleLight(lightToSample, si.p, si.shadingNormal, true, gTMin);
-
-        shootGIRay(si, randSeed, true);
-        if (!si.hasHit()) {
-            // TODO: account for environment map.
-            L += throughput;
-            break;
-        }
-
-        if (bounce == gMaxBounces - 1) {
-            // No need to sample BDRF on last bounce.
-            break;
-        }
-
-        // Terminate path probabilistically via Russian Roulette.
-        if (bounce > gMinBouncesBeforeRussianRoulette) {
-            // (Relative) luminance Y is 0-1 luminance normalized to [0.0, 1.0]. The relative luminance of an RGB
-            // color is a grayscale color and is obtained via dot product with a constant vector that has a
-            // higher green component because that's the color that the retina perceives the most.
-            // Defined in HostDeviceSharedCode.h
-            float rrPdf = min(0.95f, luminance(throughput));
-            if (rrPdf < nextRand(randSeed)) {
-                // At least 0.05 probability of terminating.
-                //
-                // Warning: terminating paths increases the variance of the estimator.
-                break;
-            } else {
-                // Increase throughput, thereby decreasing the probability of terminating?
-                throughput /= rrPdf;
-            }
-        }
-
-        int brdfType;
-        // if (si.metalness == 1.0f && si.roughness == 0.0f) {
-        //     brdfType = BXDF_SPECULAR;
-        // } else {
-
-        // }
-
-        si.p = offsetRayOrigin(si.p, si.n);
-    }
+    PathIntegrator integrator;
+    integrator.maxDepth = gMaxBounces;
+    L = integrator.Li(si, randSeed);
 
     gOutput[pixelIndex] = float4(L, 1.0f);
 }
