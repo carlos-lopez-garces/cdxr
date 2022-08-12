@@ -102,6 +102,7 @@
 #include "Graphics/Scene/Scene.h"
 #include "Graphics/Scene/SceneRenderer.h"
 #include "Graphics/Scene/Editor/SceneEditor.h"
+#include "Graphics/Scene/SceneExporter.h"
 
 // Math
 #include "Utils/Math/FalcorMath.h"

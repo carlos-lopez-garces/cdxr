@@ -126,7 +126,23 @@ void ThinLensGBufferPass::renderGui(Gui* pGui) {
         dirty |= (int)pGui->addFloatVar("Focal length", mFocalLength, 0.01f, FLT_MAX, 0.01f, true);
 		pGui->addText("     ");
         dirty |= (int)pGui->addFloatVar("f-number", mFNumber, 1.0f, 128.0f, 0.01f, true);
+        pGui->addText("     ");
 	}
+
+    if (mpScene) {
+        pGui->addText("     ");
+
+        // Choose among the preconfigured cameras available in the scene description file.
+        dirty |= (int)pGui->addIntVar("Active camera", mActiveCameraId, 0, mpScene->getCameraCount()-1, 1, true);
+        mpScene->setActiveCamera(mActiveCameraId);
+        pGui->addText("     ");
+
+        // Export and save the scene as an .fscene file.
+        if (pGui->addButton("Save scene")) {
+            std::string filename = "./saved_scene.fscene";
+            Falcor::SceneExporter::saveScene(filename, mpScene);
+        }
+    }
 
 	dirty |= (int)pGui->addCheckBox(mUseJitter ? "Jitter" : "No jitter", mUseJitter);
 

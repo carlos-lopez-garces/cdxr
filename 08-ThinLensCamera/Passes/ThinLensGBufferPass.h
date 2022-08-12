@@ -22,6 +22,7 @@ protected:
     float mLensRadius;
     float mFocalLength = 1.0f;
     float mFNumber = 32.0f;
+    int32_t mActiveCameraId = 1;
 
     vec3 mBgColor = vec3(0.5f, 0.5f, 1.0f);
     bool mUseEnvMap = true;
