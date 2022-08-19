@@ -21,6 +21,7 @@ bool ThinLensGBufferPass::initialize(Falcor::RenderContext *pRenderContext, Reso
     // Request G-Buffer textures.
     mpResManager->requestTextureResources({
         // Channels.
+        "PrimaryRayOriginOnLens"
         "WorldPosition",
         "WorldNormal",
         "WorldShadingNormal",
@@ -61,6 +62,7 @@ void ThinLensGBufferPass::execute(Falcor::RenderContext *pRenderContext) {
     mLensRadius = mFocalLength / (2.0f * mFNumber);
 
     // Load G-Buffer textures.
+    Falcor::Texture::SharedPtr primaryRayOriginOnLens = mpResManager->getClearedTexture("PrimaryRayOriginOnLens", vec4(0, 0, 0, 0));
     Falcor::Texture::SharedPtr worldSpacePosition = mpResManager->getClearedTexture("WorldPosition", vec4(0, 0, 0, 0));
     Falcor::Texture::SharedPtr worldSpaceNormal = mpResManager->getClearedTexture("WorldNormal", vec4(0, 0, 0, 0));
     Falcor::Texture::SharedPtr worldSpaceShadingNormal = mpResManager->getClearedTexture("WorldShadingNormal", vec4(0, 0, 0, 0));
@@ -75,6 +77,7 @@ void ThinLensGBufferPass::execute(Falcor::RenderContext *pRenderContext) {
     rayGenVars["RayGenCB"]["gFrameCount"] = mFrameCount++;
     rayGenVars["RayGenCB"]["gLensRadius"] = mUseThinLens ? mLensRadius : 0.0f;
     rayGenVars["RayGenCB"]["gFocalLength"] = mFocalLength;
+    rayGenVars["gRayOriginOnLens"] = primaryRayOriginOnLens;
 
     // Set up variables for all hit shaders.
     for (auto hitVars : mpRayTracer->getHitVars(0)) {

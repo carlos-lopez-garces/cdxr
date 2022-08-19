@@ -7,6 +7,7 @@ import Shading;
 #include "Sampling.hlsli"
 
 // G-Buffer.
+RWTexture2D<float4> gRayOriginOnLens;
 RWTexture2D<float4> gWsPos;
 RWTexture2D<float4> gWsNorm;
 RWTexture2D<float4> gWsShadingNorm;
@@ -79,6 +80,9 @@ void ThinLensGBufferRayGen() {
 	ray.TMax = 1e+38f;
 
 	RayPayload payload = {false};
+
+	// Store ray origin on lens so that subsequent passes can reconstruct this ray.
+	gRayOriginOnLens[pixelIndex] = float4(rayOriginOnLens, 0.0);
 
 	// gRtScene is supplied by the framework and represents the ray acceleration structure.
 	// RAY_FLAG_CULL_BACK_FACING_TRIANGLES is for ignoring hits on triangle back faces.
