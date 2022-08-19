@@ -1,5 +1,3 @@
-#include "Geometry.hlsli"
-
 struct GIRayPayload {
     float4 sampledInterreflectionColor;
     uint randSeed;
