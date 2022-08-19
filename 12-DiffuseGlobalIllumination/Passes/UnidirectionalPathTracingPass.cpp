@@ -19,6 +19,7 @@ bool UnidirectionalPathTracingPass::initialize(RenderContext* pRenderContext, Re
 
     mpResManager->requestTextureResources({
         "PrimaryRayOriginOnLens",
+        "PrimaryRayDirection",
         "WorldPosition",
         "WorldNormal",
         "WorldShadingNormal",
@@ -76,6 +77,7 @@ void UnidirectionalPathTracingPass::execute(RenderContext* pRenderContext) {
 	rayGenVars["gMatDif"] = mpResManager->getTexture("MaterialDiffuse");
     rayGenVars["gMatEmissive"] = mpResManager->getTexture("MaterialEmissive");
     rayGenVars["gRayOriginOnLens"] = mpResManager->getTexture("PrimaryRayOriginOnLens");
+    rayGenVars["gPrimaryRayDirection"] = mpResManager->getTexture("PrimaryRayDirection");
     rayGenVars["gDiffuseBRDF"] = diffuseBRDFTex;
     rayGenVars["gDiffuseLightIntensity"] = diffuseLightIntensityTex;
     rayGenVars["gSpecularBRDF"] = specularBRDFTex;

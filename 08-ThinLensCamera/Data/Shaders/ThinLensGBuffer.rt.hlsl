@@ -8,6 +8,7 @@ import Shading;
 
 // G-Buffer.
 RWTexture2D<float4> gRayOriginOnLens;
+RWTexture2D<float4> gPrimaryRayDirection;
 RWTexture2D<float4> gWsPos;
 RWTexture2D<float4> gWsNorm;
 RWTexture2D<float4> gWsShadingNorm;
@@ -81,8 +82,11 @@ void ThinLensGBufferRayGen() {
 
 	RayPayload payload = {false};
 
-	// Store ray origin on lens so that subsequent passes can reconstruct this ray.
+	// Store ray origin on lens and direction so that subsequent passes can reconstruct this ray.
+	// Reconstructing the ray from the origin point on the lens and the primary hit point is not
+	// reliable because there's no valid hit point when the primary ray misses.
 	gRayOriginOnLens[pixelIndex] = float4(rayOriginOnLens, 0.0);
+	gPrimaryRayDirection[pixelIndex] = float4(ray.Direction, 1.0);
 
 	// gRtScene is supplied by the framework and represents the ray acceleration structure.
 	// RAY_FLAG_CULL_BACK_FACING_TRIANGLES is for ignoring hits on triangle back faces.

@@ -14,7 +14,7 @@ float4 main(float2 texC : TEXCOORD, float4 pos : SV_POSITION) : SV_Target0 {
     float4 curColor = gCurFrame[pixelPosition];
     float4 prevColor = gLastFrame[pixelPosition];
 
-    // A weighted average of the accumulated pixel color and the new frame's.abort
+    // A weighted average of the accumulated pixel color and the new frame's.
     // The new frame is supplied by the previous pass, the RayTracedAmbientOcclusionPass.
     // The weight of the accumulated color is the number of accumulated frames, whereas
     // the weight of the new frame's color is just 1. At the time of invocation.

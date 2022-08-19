@@ -14,6 +14,7 @@ import BRDF;
 #include "Integrators/Path.hlsli"
 
 RWTexture2D<float4> gRayOriginOnLens;
+RWTexture2D<float4> gPrimaryRayDirection;
 Texture2D<float4> gWsPos;
 // Shading normal.
 Texture2D<float4> gWsNorm;
@@ -53,10 +54,14 @@ void PathTracingRayGen() {
     si.color = gMatDif[pixelIndex];
     si.emissive = gMatEmissive[pixelIndex].rgb;
     
-    // Reconstruct the primary used to populate the G-Buffer.
+    // Reconstruct the primary ray used to populate the G-Buffer.
 	RayDesc primaryRay;
 	primaryRay.Origin = gRayOriginOnLens[pixelIndex].xyz;
-	primaryRay.Direction = normalize(gWsPos[pixelIndex].xyz - primaryRay.Origin);
+    // The direction of the primary ray used to be reconstructed as follows:
+    //  normalize(gWsPos[pixelIndex].xyz - primaryRay.Origin)
+    // but this is unreliable because there's no valid hit point in gWsPos when
+    // the primary ray misses.
+	primaryRay.Direction = gPrimaryRayDirection[pixelIndex].xyz;
 	primaryRay.TMin = 0.0f;
 	primaryRay.TMax = 1e+38f;
 
