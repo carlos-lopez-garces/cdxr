@@ -1,13 +1,28 @@
 struct SurfaceInteraction {
+	// TODO: optimize packing.
 	float3 p;
 	float3 n;
 	float4 color;
 	float3 shadingNormal;
 	float16_t2 uvs;
 	float3 emissive;
+	float3 diffuseBRDF;
+	float diffusePdf;
+	float3 diffuseLightIntensity;
+	float3 specularBRDF;
+	float3 wi;
+	bool hit;
 
 	bool hasHit() {
-		return !(shadingNormal.x == 0 && shadingNormal.y == 0 && shadingNormal.z == 0);
+		return hit;
+	}
+
+	void ComputeScatteringFunctions(RayDesc ray) {
+		// TODO: Compute differentials of P and UV mappings. They may be needed next by materials
+    	// that evaluate textures to obtain BSDF parameters.
+		if (IsBlack(diffuseBRDF)) {
+			return;
+		}
 	}
 };
 
