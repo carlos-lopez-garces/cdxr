@@ -9,19 +9,24 @@ namespace {
 
     // Entrypoints.
     const char *kEntryPointRayGen = "PathTracingRayGen";
-    const char *kEntryPointGIClosestHit = "GIClosestHit";
-    const char *kEntryPointGIAnyHit = "GIAnyHit";
-    const char *kEntryPointGIMiss = "GIMiss";
-    const char *kEntryPointShadowClosestHit = "ShadowClosestHit";
-    const char *kEntryPointShadowAnyHit = "ShadowAnyHit";
-    const char *kEntryPointShadowMiss = "ShadowMiss";
+    const char *kEntryPointPTClosestHit = "PTClosestHit";
+    const char *kEntryPointPTAnyHit = "PTAnyHit";
+    const char *kEntryPointPTMiss = "PTMiss";
 };
 
 bool UnidirectionalPathTracingPass::initialize(RenderContext* pRenderContext, ResourceManager::SharedPtr pResManager) {
     mpResManager = pResManager;
 
     mpResManager->requestTextureResources({
-        "WorldPosition", "WorldNormal", "WorldShadingNormal", "MaterialDiffuse", "MaterialEmissive"
+        "PrimaryRayOriginOnLens",
+        "WorldPosition",
+        "WorldNormal",
+        "WorldShadingNormal",
+        "MaterialDiffuse",
+        "MaterialEmissive",
+        "DiffuseBRDF",
+        "DiffuseLightIntensity",
+        "SpecularBRDF",
     });
     mpResManager->requestTextureResource(mOutputBuffer);
     mpResManager->requestTextureResource(ResourceManager::kEnvironmentMap);
@@ -30,14 +35,9 @@ bool UnidirectionalPathTracingPass::initialize(RenderContext* pRenderContext, Re
 
     mpRayTracer = RayLaunch::create(kShaderFile, kEntryPointRayGen);
 
-    // Ray type / hit group 0: shadow rays.
-    mpRayTracer->addHitShader(kShaderFile, kEntryPointShadowClosestHit, kEntryPointShadowAnyHit);
-    mpRayTracer->addMissShader(kShaderFile, kEntryPointShadowMiss);
-
-    // Ray type / hit group 1: GI rays.
-    mpRayTracer->addHitShader(kShaderFile, kEntryPointGIClosestHit, kEntryPointGIAnyHit);
-    mpRayTracer->addMissShader(kShaderFile, kEntryPointGIMiss);
-
+    // Ray type / hit group 0: path tracing rays.
+    mpRayTracer->addHitShader(kShaderFile, kEntryPointPTClosestHit, kEntryPointPTAnyHit);
+    mpRayTracer->addMissShader(kShaderFile, kEntryPointPTMiss);
 
     mpRayTracer->compileRayProgram();
     if (mpScene) {
@@ -54,6 +54,9 @@ void UnidirectionalPathTracingPass::initScene(RenderContext* pRenderContext, Sce
 }
 
 void UnidirectionalPathTracingPass::execute(RenderContext* pRenderContext) {
+    Texture::SharedPtr diffuseBRDFTex = mpResManager->getClearedTexture("DiffuseBRDF", vec4(0.0f, 0.0f, 0.0f, 0.0f));
+    Texture::SharedPtr diffuseLightIntensityTex = mpResManager->getClearedTexture("DiffuseLightIntensity", vec4(0.0f, 0.0f, 0.0f, 0.0f));
+    Texture::SharedPtr specularBRDFTex = mpResManager->getClearedTexture("SpecularBRDF", vec4(0.0f, 0.0f, 0.0f, 0.0f));
     Texture::SharedPtr outputTex = mpResManager->getClearedTexture(mOutputBuffer, vec4(0.0f, 0.0f, 0.0f, 0.0f));
 
     if (!outputTex || !mpRayTracer || !mpRayTracer->readyToRender()) {
@@ -72,13 +75,26 @@ void UnidirectionalPathTracingPass::execute(RenderContext* pRenderContext) {
     rayGenVars["gWsShadingNorm"] = mpResManager->getTexture("WorldShadingNormal");
 	rayGenVars["gMatDif"] = mpResManager->getTexture("MaterialDiffuse");
     rayGenVars["gMatEmissive"] = mpResManager->getTexture("MaterialEmissive");
+    rayGenVars["gRayOriginOnLens"] = mpResManager->getTexture("PrimaryRayOriginOnLens");
+    rayGenVars["gDiffuseBRDF"] = diffuseBRDFTex;
+    rayGenVars["gDiffuseLightIntensity"] = diffuseLightIntensityTex;
+    rayGenVars["gSpecularBRDF"] = specularBRDFTex;
 	rayGenVars["gOutput"] = outputTex;
+
+    // Set up variables for all hit shaders of the PT shader.
+    for (auto ptHitVars : mpRayTracer->getHitVars(0)) {
+        ptHitVars["gDiffuseBRDF"] = diffuseBRDFTex;
+        // DEBUG: if you comment this out, the program doesn't break or crash.
+        // DEBUG: a shader variable with name gDiffuseLightIntensity is indeed found in hit group 0.
+        ptHitVars["gDiffuseLightIntensity"] = diffuseLightIntensityTex;
+        ptHitVars["gSpecularBRDF"] = specularBRDFTex;
+    }
 
     // TODO: should be 1 instead of 0, because it is hitgroup 1 that uses gEnvMap; but if set to 1,
     // the render doesn't converge and there are very bright pixels.
-    auto giMissVars = mpRayTracer->getMissVars(0);
+    auto PTMissVars = mpRayTracer->getMissVars(0);
     // Color sampled by all rays that escape the scene without hitting anything. Constant buffer.
-    giMissVars["gEnvMap"] = mpResManager->getTexture(ResourceManager::kEnvironmentMap);
+    PTMissVars["gEnvMap"] = mpResManager->getTexture(ResourceManager::kEnvironmentMap);
 
     mpRayTracer->execute(pRenderContext, mpResManager->getScreenSize());
 }

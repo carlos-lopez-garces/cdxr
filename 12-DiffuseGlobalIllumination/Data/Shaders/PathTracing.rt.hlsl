@@ -4,15 +4,16 @@ import Raytracing;
 import ShaderCommon;
 import Shading;     
 import Lights;
+import BRDF;
 #include "Constants.hlsli"
+#include "Geometry.hlsli"
+#include "Spectrum.hlsli"
 #include "AlphaTesting.hlsli"
-#include "GI.hlsli"
 #include "Sampling.hlsli"
-#include "Shadows.hlsli"
-#include "Lighting.hlsli"
 #include "BxDF.hlsli"
 #include "Integrators/Path.hlsli"
 
+RWTexture2D<float4> gRayOriginOnLens;
 Texture2D<float4> gWsPos;
 // Shading normal.
 Texture2D<float4> gWsNorm;
@@ -52,9 +53,16 @@ void PathTracingRayGen() {
     si.color = gMatDif[pixelIndex];
     si.emissive = gMatEmissive[pixelIndex].rgb;
     
+    // Reconstruct the primary used to populate the G-Buffer.
+	RayDesc primaryRay;
+	primaryRay.Origin = gRayOriginOnLens[pixelIndex].xyz;
+	primaryRay.Direction = normalize(gWsPos[pixelIndex].xyz - primaryRay.Origin);
+	primaryRay.TMin = 0.0f;
+	primaryRay.TMax = 1e+38f;
+
     PathIntegrator integrator;
     integrator.maxDepth = gMaxBounces;
-    L = integrator.Li(si, randSeed);
+    L = integrator.Li(primaryRay, si, randSeed, pixelIndex);
 
     gOutput[pixelIndex] = float4(L, 1.0f);
 }

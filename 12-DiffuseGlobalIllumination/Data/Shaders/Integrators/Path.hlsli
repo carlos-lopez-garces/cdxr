@@ -1,3 +1,104 @@
+struct PTRayPayload {
+    uint randSeed;
+    float3 shadingNormal;
+    float3 hitPoint;
+    uint2 pixelIndex;
+    bool hit;
+};
+
+RWTexture2D<float4> gDiffuseBRDF;
+// DEBUG: the texture created by the resource manager is not being bound to this variable.
+RWTexture2D<float4> gDiffuseLightIntensity;
+RWTexture2D<float4> gSpecularBRDF;
+// Environment map;
+Texture2D<float4> gEnvMap;
+
+void spawnRay(RayDesc ray, inout SurfaceInteraction si, uint randSeed, uint2 pixelIndex) {
+    PTRayPayload payload;
+    payload.randSeed = randSeed;
+    payload.pixelIndex = pixelIndex;
+    payload.hit = false;
+
+    TraceRay(
+        gRtScene,
+        RAY_FLAG_NONE,
+        0xFF,
+        // Hit group #1.
+        STANDARD_RAY_HIT_GROUP,
+        // hitProgramCount is supplied by the framework and is the number of hit groups that exist.
+        hitProgramCount,
+        // Miss shader?
+        STANDARD_RAY_HIT_GROUP,
+        ray,
+        payload,
+    );
+
+    si.hit = payload.hit;
+    si.shadingNormal = payload.shadingNormal;
+    si.p = payload.hitPoint;
+
+    // TODO: use CosineSampleHemisphere.
+    si.wi = getCosHemisphereSample(randSeed, payload.shadingNormal);
+    // DEBUG: gDiffuseBRDF[pixelIndex].xyz comes indeed from the closesthit shader.
+    si.diffuseBRDF = gDiffuseBRDF[pixelIndex].xyz;
+    // DEBUG. gDiffuseBRDF[pixelIndex].xyz is black.
+    // si.diffuseBRDF = float3(0.3, 0.4, 0.5);
+    si.diffusePdf = abs(dot(payload.shadingNormal, si.wi)) / M_1_PI;
+    // DEBUG: pixels show the color set/returned in si.diffuseLightIntensity.
+    // DEBUG: whatever is in gDiffuseLightIntensity is indeed seen by the caller in si.diffuseLightIntensity.
+    // gDiffuseLightIntensity[pixelIndex] = float4(0.5, 0.9, 0.7, 1.0);
+    si.diffuseLightIntensity = gDiffuseLightIntensity[pixelIndex].xyz;
+}
+
+[shader("closesthit")]
+void PTClosestHit(inout PTRayPayload payload, BuiltInTriangleIntersectionAttributes attributes) {
+    // PrimitiveIndex() is an object introspection intrinsic that returns
+    // the identifier of the current primitive.
+    ShadingData shadingData = getShadingData(PrimitiveIndex(), attributes);
+
+    int lightToSample = min(int(nextRand(payload.randSeed) * gLightsCount), gLightsCount - 1);
+	LightSample lightSample;
+	if (gLights[lightToSample].type == LightDirectional) {
+		lightSample = evalDirectionalLight(gLights[lightToSample], shadingData.posW);
+    } else {
+		lightSample = evalPointLight(gLights[lightToSample], shadingData.posW);
+    }
+	float3 directionToLight = normalize(lightSample.L);
+    gDiffuseLightIntensity[payload.pixelIndex] = float4(lightSample.diffuse, 0.0); 
+    // gDiffuseLightIntensity[payload.pixelIndex] = float4(1.0f,0.0f,1.0f, 1.0f);
+	float distanceToLight = length(lightSample.posW - shadingData.posW);
+
+    // shadingData.N is shading normal.
+    payload.shadingNormal = shadingData.N;
+    payload.hitPoint = shadingData.posW;
+
+    gDiffuseBRDF[payload.pixelIndex] = float4(evalDiffuseLambertBrdf(shadingData, lightSample), 0.0);
+    // DEBUG.
+    // gDiffuseBRDF[payload.pixelIndex] = float4(0.7, 0.8, 0.9, 1.0); 
+
+    payload.hit = true;
+}
+
+[shader("anyhit")]
+void PTAnyHit(inout PTRayPayload payload, BuiltInTriangleIntersectionAttributes attributes) {
+    if(alphaTestFails(attributes)) {
+        IgnoreHit();
+    }
+}
+
+[shader("miss")]
+void PTMiss(inout PTRayPayload payload) {
+	float2 envMapDimensions;
+	gEnvMap.GetDimensions(envMapDimensions.x, envMapDimensions.y);
+
+	float2 uv = WorldToLatitudeLongitude(WorldRayDirection());
+
+    // payload.sampledInterreflectionColor = float4(gEnvMap[uint2(uv * envMapDimensions)].rgb, 1.0f);
+    gDiffuseLightIntensity[payload.pixelIndex] = float4(gEnvMap[uint2(uv * envMapDimensions)].rgb, 1.0f);
+    // gDiffuseLightIntensity[payload.pixelIndex] = float4(1.0f,0.0f,1.0f, 1.0f);
+
+}
+
 // PathIntegrator evaluates the path integral form of the light transport equation, or LTE (its other
 // forms, the energy balance form and its surface (3-point) form are much more difficult to
 // evaluate).
@@ -15,7 +116,7 @@
 struct PathIntegrator {
     int maxDepth;
 
-	float3 Li(SurfaceInteraction si, uint randSeed) {
+	float3 Li(RayDesc ray, SurfaceInteraction si, uint randSeed, uint2 pixelIndex) {
 		// Radiance.
         float3 L = float3(0.0f, 0.0f, 0.0f);
 
@@ -44,17 +145,23 @@ struct PathIntegrator {
         bool specularBounce = false;
 
         for (int bounces = 0; ; ++bounces) {
+            // TODO: Handle media boundaries that don't have BSDFs.
+            
             // TODO: Revisit. Not in cpbrt.
-            L += beta * si.emissive;
+            // L += beta * si.emissive;
 
             // TODO: Revisit. Not in cpbrt.
             // Direct illumination.
             // gLightsCount and getLightData() are automatically imported by Falcor.
-            int lightToSample = min(int(nextRand(randSeed) * gLightsCount), gLightsCount - 1);
-            L += beta * si.color.rgb * sampleLight(lightToSample, si.p, si.shadingNormal, true, gTMin);
+            // int lightToSample = min(int(nextRand(randSeed) * gLightsCount), gLightsCount - 1);
+            // L += beta * si.color.rgb * sampleLight(lightToSample, si.p, si.shadingNormal, true, gTMin);
 
-            shootGIRay(si, randSeed, true);
+            // shootGIRay(si, randSeed, true);
+            spawnRay(ray, si, randSeed, pixelIndex);
             bool foundIntersection = si.hasHit();
+
+            // DEBUG.
+            // return si.diffuseLightIntensity;
 
             if (bounces == 0 || specularBounce) {
                 if (foundIntersection) {
@@ -67,8 +174,40 @@ struct PathIntegrator {
             if (!foundIntersection || bounces >= maxDepth) {
                 // When no intersection was found, the ray escaped out into the environment.
                 // Reaching the established maximum number of bounces also terminates path sampling.
+
+                // DEBUG.
+                // L = float3(0.0f, 1.0f, 0.0f);
                 break;
             }
+
+            L += beta * si.diffuseLightIntensity;
+
+            float3 wo = -ray.Direction;
+            float3 wi = si.wi;
+            float pdf = si.diffusePdf;
+            float3 f = si.diffuseBRDF;
+            // DEBUG.
+            // return f;
+            if (IsBlack(f) || pdf == 0.0f) {
+                break;
+            }
+
+            // DEBUG.
+            // return beta;
+
+            // Add throughput weight at current vertex. The |cos(wi, si.shadingNormal)| factor is the one from the
+            // energy balance form of the LTE and computes the component of irradiance that is perpendicular to
+            // the surface at point si.p.
+            beta *= f * abs(dot(wi, si.shadingNormal)) / pdf;
+
+            // DEBUG.
+            // return si.shadingNormal;
+
+            // TODO: Is this a specular bounce?
+            specularBounce = false;
+
+            // CPBRT spawns the ray here, but here we do it at the beginning of the loop.
+            // ray = ...
 
             // Terminate path probabilistically via Russian Roulette.
             if (bounces > gMinBouncesBeforeRussianRoulette) {
