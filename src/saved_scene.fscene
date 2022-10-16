@@ -5,7 +5,7 @@
     "active_camera": "Camera0",
     "models": [
         {
-            "file": "C:\\Users\\carlo\\Code\\src\\github.com\\carlos-lopez-garces\\dxr\\Scenes\\SanMiguel/san-miguel.obj",
+            "file": "C:\\Users\\carlo\\Code\\src\\github.com\\carlos-lopez-garces\\cdxr\\Scenes\\SanMiguel/san-miguel.obj",
             "name": "san-miguel_copy",
             "material": {
                 "shading_model": "metal_rough"

@@ -24,7 +24,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "08-ThinLensCamera", "08-Thi
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "09-LambertianPlusShadows", "09-LambertianPlusShadows\09-LambertianPlusShadows.vcxproj", "{0203F589-FD13-4919-9668-3EDB912E5D2F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cdxr", "cdxr\cdxr.vcxproj", "{6CE0B2E6-0EB4-4251-9DB4-BE2D6B7F3082}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "src", "src\cdxr.vcxproj", "{6CE0B2E6-0EB4-4251-9DB4-BE2D6B7F3082}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "13-SimpleToneMapping", "13-SimpleToneMapping\13-SimpleToneMapping.vcxproj", "{1B0E95BF-E2BA-4A75-B167-018C3C6DE512}"
 EndProject
