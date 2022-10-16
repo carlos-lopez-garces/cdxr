@@ -1,6 +1,7 @@
 struct PTRayPayload {
     uint randSeed;
     float3 shadingNormal;
+    float3 normal;
     float3 hitPoint;
     uint2 pixelIndex;
     bool hit;
@@ -12,6 +13,7 @@ RWTexture2D<float4> gDiffuseLightIntensity;
 RWTexture2D<float4> gSpecularBRDF;
 // Environment map;
 Texture2D<float4> gEnvMap;
+Texture2D<float4> gMatDif;
 
 void spawnRay(RayDesc ray, inout SurfaceInteraction si, uint randSeed, uint2 pixelIndex) {
     PTRayPayload payload;
@@ -34,24 +36,36 @@ void spawnRay(RayDesc ray, inout SurfaceInteraction si, uint randSeed, uint2 pix
     );
 
     si.hit = payload.hit;
-    si.shadingNormal = payload.shadingNormal;
-    si.p = payload.hitPoint;
+    if (si.hit) {
+        si.shadingNormal = payload.shadingNormal;
+        si.p = payload.hitPoint;
+        si.n = payload.normal;
 
-    // TODO: use CosineSampleHemisphere.
-    si.wi = getCosHemisphereSample(randSeed, payload.shadingNormal);
-    // DEBUG: gDiffuseBRDF[pixelIndex].xyz comes indeed from the closesthit shader.
-    si.diffuseBRDF = gDiffuseBRDF[pixelIndex].xyz;
-    // DEBUG. gDiffuseBRDF[pixelIndex].xyz is black.
-    // si.diffuseBRDF = float3(0.3, 0.4, 0.5);
-    si.diffusePdf = abs(dot(payload.shadingNormal, si.wi)) / M_1_PI;
-    // DEBUG: pixels show the color set/returned in si.diffuseLightIntensity.
-    // DEBUG: whatever is in gDiffuseLightIntensity is indeed seen by the caller in si.diffuseLightIntensity.
-    // gDiffuseLightIntensity[pixelIndex] = float4(0.5, 0.9, 0.7, 1.0);
-    si.diffuseLightIntensity = gDiffuseLightIntensity[pixelIndex].xyz;
+        // TODO: use CosineSampleHemisphere.
+        si.wi = normalize(getCosHemisphereSample(randSeed, payload.shadingNormal));
+        if (si.wi.z < 0) {
+            si.wi.z *= -1;
+        }
+        // DEBUG: gDiffuseBRDF[pixelIndex].xyz comes indeed from the closesthit shader.
+        si.diffuseBRDF = gDiffuseBRDF[pixelIndex].xyz;
+        // DEBUG. gDiffuseBRDF[pixelIndex].xyz is black.
+        // si.diffuseBRDF = float3(0.3, 0.4, 0.5);
+        si.diffusePdf = abs(dot(payload.shadingNormal, si.wi)) * M_1_PI;
+
+        // DEBUG: pixels show the color set/returned in si.diffuseLightIntensity.
+        // DEBUG: whatever is in gDiffuseLightIntensity is indeed seen by the caller in si.diffuseLightIntensity.
+        // gDiffuseLightIntensity[pixelIndex] = float4(0.5, 0.9, 0.7, 1.0);
+        si.diffuseLightIntensity = gDiffuseLightIntensity[pixelIndex].xyz;
+        si.diffuseColor = gMatDif[pixelIndex].xyz;
+    } else {
+        si.diffuseLightIntensity = float4(0.6f, 0.355f, 0.8f, 1.0f).xyz;
+    }
 }
 
 [shader("closesthit")]
 void PTClosestHit(inout PTRayPayload payload, BuiltInTriangleIntersectionAttributes attributes) {
+    VertexOut vsOut = getVertexAttributes(PrimitiveIndex(), attributes);
+
     // PrimitiveIndex() is an object introspection intrinsic that returns
     // the identifier of the current primitive.
     ShadingData shadingData = getShadingData(PrimitiveIndex(), attributes);
@@ -64,13 +78,15 @@ void PTClosestHit(inout PTRayPayload payload, BuiltInTriangleIntersectionAttribu
 		lightSample = evalPointLight(gLights[lightToSample], shadingData.posW);
     }
 	float3 directionToLight = normalize(lightSample.L);
-    gDiffuseLightIntensity[payload.pixelIndex] = float4(lightSample.diffuse, 0.0); 
-    // gDiffuseLightIntensity[payload.pixelIndex] = float4(1.0f,0.0f,1.0f, 1.0f);
+    gDiffuseLightIntensity[payload.pixelIndex] = float4(lightSample.diffuse, 1.0); 
+    // gDiffuseLightIntensity[payload.pixelIndex] = float4(0.0f,1.0f,1.0f, 1.0f);
 	float distanceToLight = length(lightSample.posW - shadingData.posW);
 
     // shadingData.N is shading normal.
     payload.shadingNormal = shadingData.N;
-    payload.hitPoint = shadingData.posW;
+    //payload.hitPoint = shadingData.posW;
+    payload.hitPoint = vsOut.posW;
+    payload.normal = vsOut.normalW;
 
     gDiffuseBRDF[payload.pixelIndex] = float4(evalDiffuseLambertBrdf(shadingData, lightSample), 0.0);
     // DEBUG.
@@ -96,7 +112,10 @@ void PTMiss(inout PTRayPayload payload) {
     // payload.sampledInterreflectionColor = float4(gEnvMap[uint2(uv * envMapDimensions)].rgb, 1.0f);
     gDiffuseLightIntensity[payload.pixelIndex] = float4(gEnvMap[uint2(uv * envMapDimensions)].rgb, 1.0f);
     // gDiffuseLightIntensity[payload.pixelIndex] = float4(1.0f,0.0f,1.0f, 1.0f);
-
+    // DEBUG: The miss shader doesn't get to execute. Regions of the scene where the environment map should
+    // be visible, the pixel color returned is the debug one set in the closesthit shader.
+    gDiffuseLightIntensity[payload.pixelIndex] = float4(0.6f, 0.355f, 0.8f, 1.0f);
+    payload.hit = false;
 }
 
 // PathIntegrator evaluates the path integral form of the light transport equation, or LTE (its other
@@ -116,7 +135,9 @@ void PTMiss(inout PTRayPayload payload) {
 struct PathIntegrator {
     int maxDepth;
 
-	float3 Li(RayDesc ray, SurfaceInteraction si, uint randSeed, uint2 pixelIndex) {
+	float3 Li(RayDesc ray, uint randSeed, uint2 pixelIndex) {
+        SurfaceInteraction si;
+
 		// Radiance.
         float3 L = float3(0.0f, 0.0f, 0.0f);
 
@@ -157,17 +178,27 @@ struct PathIntegrator {
             // L += beta * si.color.rgb * sampleLight(lightToSample, si.p, si.shadingNormal, true, gTMin);
 
             // shootGIRay(si, randSeed, true);
+            // DEBUG: where are primary rays pointing? the closesthit shader executes for regions where the
+            // environment map should be visible.
+            // return ray.Direction;
             spawnRay(ray, si, randSeed, pixelIndex);
+            // return ray.Origin;
+
+            // DEBUG: most pixels are some shade of green, except vases, which are black.
+            // return si.p;
+            // return si.shadingNormal;
             bool foundIntersection = si.hasHit();
+            // return si.hasHit() ? float3(1.0f, 0.0f, 0.0f) : float3(0.0f, 1.0f, 0.0f);
 
             // DEBUG.
             // return si.diffuseLightIntensity;
 
             if (bounces == 0 || specularBounce) {
                 if (foundIntersection) {
-                    // TODO
+                    // TODO: sample emitted radiance if the light source is an area light.
                 } else {
                     // TODO: Sample environment map.
+                    L += beta * si.diffuseLightIntensity;
                 }
             }
 
@@ -186,6 +217,8 @@ struct PathIntegrator {
             float3 wi = si.wi;
             float pdf = si.diffusePdf;
             float3 f = si.diffuseBRDF;
+            // DEBUG.
+            f = si.diffuseColor;
             // DEBUG.
             // return f;
             if (IsBlack(f) || pdf == 0.0f) {
@@ -208,6 +241,8 @@ struct PathIntegrator {
 
             // CPBRT spawns the ray here, but here we do it at the beginning of the loop.
             // ray = ...
+            ray.Origin = offsetRayOrigin(si.p, si.shadingNormal);
+            ray.Direction = wi;
 
             // Terminate path probabilistically via Russian Roulette.
             if (bounces > gMinBouncesBeforeRussianRoulette) {
@@ -223,7 +258,8 @@ struct PathIntegrator {
                 // probability of termination is desirable because path samples whose estimates contribute little
                 // introduce variance in the total estimate of L.
                 float rrPdf = min(0.95f, luminance(beta));
-                if (rrPdf < nextRand(randSeed)) {
+                // float q = max(0.05, 1 - beta.y);
+                if (rrPdf < nextRand(randSeed) /*nextRand(randSeed) < q*/) {
                     // At least 0.05 probability of terminating.
                     //
                     // Warning: terminating paths increases the variance of the estimator.
@@ -231,10 +267,9 @@ struct PathIntegrator {
                 } else {
                     // Increase throughput, thereby decreasing the probability of terminating?
                     beta /= rrPdf;
+                    // beta /= 1 - q;
                 }
             }
-
-            si.p = offsetRayOrigin(si.p, si.n);
         }
 
         return L;

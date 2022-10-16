@@ -13,6 +13,7 @@
   <ItemGroup>
     <ClCompile Include="..\06-TemporalAccumulation\Passes\TemporalAccumulationPass.cpp" />
     <ClCompile Include="..\08-ThinLensCamera\Passes\ThinLensGBufferPass.cpp" />
+    <ClCompile Include="..\CommonPasses\LightProbeGBufferPass.cpp" />
     <ClCompile Include="..\SharedUtils\FullscreenLaunch.cpp" />
     <ClCompile Include="..\SharedUtils\RayLaunch.cpp" />
     <ClCompile Include="..\SharedUtils\RenderingPipeline.cpp" />
@@ -20,13 +21,16 @@
     <ClCompile Include="..\SharedUtils\ResourceManager.cpp" />
     <ClCompile Include="..\SharedUtils\SceneLoaderWrapper.cpp" />
     <ClCompile Include="..\SharedUtils\SimpleVars.cpp" />
-    <ClCompile Include="DiffuseGlobalIllumination.cpp" />
+    <ClCompile Include="cdxr.cpp" />
     <ClCompile Include="Passes\DiffuseGIPass.cpp" />
+    <ClCompile Include="Passes\GGXGIPass.cpp" />
     <ClCompile Include="Passes\ToneMappingPass.cpp" />
+    <ClCompile Include="Passes\UnidirectionalPathTracingPass.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\06-TemporalAccumulation\Passes\TemporalAccumulationPass.h" />
     <ClInclude Include="..\08-ThinLensCamera\Passes\ThinLensGBufferPass.h" />
+    <ClInclude Include="..\CommonPasses\LightProbeGBufferPass.h" />
     <ClInclude Include="..\SharedUtils\FullscreenLaunch.h" />
     <ClInclude Include="..\SharedUtils\RayLaunch.h" />
     <ClInclude Include="..\SharedUtils\RenderingPipeline.h" />
@@ -35,16 +39,9 @@
     <ClInclude Include="..\SharedUtils\SceneLoaderWrapper.h" />
     <ClInclude Include="..\SharedUtils\SimpleVars.h" />
     <ClInclude Include="Passes\DiffuseGIPass.h" />
+    <ClInclude Include="Passes\GGXGIPass.h" />
     <ClInclude Include="Passes\ToneMappingPass.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Data\Tutorial12\simpleDiffuseGI.rt.hlsl">
-      <FileType>Document</FileType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Data\Tutorial12\simpleDiffuseGIUtils.hlsli" />
-    <None Include="Data\Tutorial12\standardShadowRay.hlsli" />
+    <ClInclude Include="Passes\UnidirectionalPathTracingPass.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Falcor3.1\Framework\FalcorSharedObjects\FalcorSharedObjects.vcxproj">
@@ -59,7 +56,7 @@
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>DXRT</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>12-DiffuseGlobalIllumination</ProjectName>
+    <ProjectName>cdxr</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -97,7 +94,7 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>FALCOR_DXR;WIN32;SOLUTION_DIR=R"($(SolutionDir))";_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING;FALCOR_DXR;WIN32;SOLUTION_DIR=R"($(SolutionDir))";_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(FALCOR_DXR_DIR)\DX12\;$(FALCOR_DXR_DIR)..\..\Source\;.;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>

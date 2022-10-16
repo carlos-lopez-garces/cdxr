@@ -1,5 +1,3 @@
-#include "PRNG.hlsli"
-
 // Stark's improvement to the Hughes-Moller approach to perpendicular vector generation.
 // See  blog.selfshadow.com/2011/10/17/perp-vectors.
 float3 getPerpendicularVector(float3 u) {

@@ -43,16 +43,6 @@ void PathTracingRayGen() {
     // Radiance.
     float3 L = float3(0.0f, 0.0f, 0.0f);
     float3 throughput = float3(1.0f, 1.0f, 1.0f);
-
-    SurfaceInteraction si;
-    // Ray origin at primary hit point.
-    si.p = gWsPos[pixelIndex].xyz;
-    // Geometric normal.
-    si.n = gWsNorm[pixelIndex].xyz; 
-    si.shadingNormal = gWsShadingNorm[pixelIndex].xyz; 
-    // Read surface diffuse color or environment color from G-Buffer.
-    si.color = gMatDif[pixelIndex];
-    si.emissive = gMatEmissive[pixelIndex].rgb;
     
     // Reconstruct the primary ray used to populate the G-Buffer.
 	RayDesc primaryRay;
@@ -62,12 +52,16 @@ void PathTracingRayGen() {
     // but this is unreliable because there's no valid hit point in gWsPos when
     // the primary ray misses.
 	primaryRay.Direction = gPrimaryRayDirection[pixelIndex].xyz;
+    // DEBUG:
+    // primaryRay.Direction = -primaryRay.Direction;
 	primaryRay.TMin = 0.0f;
 	primaryRay.TMax = 1e+38f;
 
     PathIntegrator integrator;
     integrator.maxDepth = gMaxBounces;
-    L = integrator.Li(primaryRay, si, randSeed, pixelIndex);
+    L = integrator.Li(primaryRay, randSeed, pixelIndex);
+    // DEBUG: what color is sampled by rays pointing to the environment map? Map is rendered correctly.
+    // L = gMatDif[pixelIndex].xyz;
 
     gOutput[pixelIndex] = float4(L, 1.0f);
 }

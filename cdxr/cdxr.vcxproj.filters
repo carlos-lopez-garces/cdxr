@@ -48,6 +48,15 @@
     <ClInclude Include="Passes\ToneMappingPass.h">
       <Filter>Passes</Filter>
     </ClInclude>
+    <ClInclude Include="Passes\UnidirectionalPathTracingPass.h">
+      <Filter>Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Passes\GGXGIPass.h">
+      <Filter>Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\CommonPasses\LightProbeGBufferPass.h">
+      <Filter>CommonPasses</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\SharedUtils\RenderingPipeline.cpp">
@@ -74,7 +83,7 @@
     <ClCompile Include="Passes\DiffuseGIPass.cpp">
       <Filter>Passes</Filter>
     </ClCompile>
-    <ClCompile Include="DiffuseGlobalIllumination.cpp" />
+    <ClCompile Include="cdxr.cpp" />
     <ClCompile Include="..\06-TemporalAccumulation\Passes\TemporalAccumulationPass.cpp">
       <Filter>Passes</Filter>
     </ClCompile>
@@ -84,16 +93,14 @@
     <ClCompile Include="Passes\ToneMappingPass.cpp">
       <Filter>Passes</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Data\Tutorial12\standardShadowRay.hlsli">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Data\Tutorial12\simpleDiffuseGIUtils.hlsli">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="Data\Tutorial12\simpleDiffuseGI.rt.hlsl">
-      <Filter>Shaders</Filter>
-    </None>
+    <ClCompile Include="Passes\UnidirectionalPathTracingPass.cpp">
+      <Filter>Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Passes\GGXGIPass.cpp">
+      <Filter>Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="..\CommonPasses\LightProbeGBufferPass.cpp">
+      <Filter>CommonPasses</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

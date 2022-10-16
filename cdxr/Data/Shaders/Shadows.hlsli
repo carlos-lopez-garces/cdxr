@@ -1,10 +1,10 @@
 // From Falcor.
-#include "HostDeviceSharedMacros.h"
-#include "HostDeviceData.h"           
-import Raytracing;
-import ShaderCommon;
-import Shading;     
-import Lights;
+// #include "HostDeviceSharedMacros.h"
+// #include "HostDeviceData.h"           
+// import Raytracing;
+// import ShaderCommon;
+// import Shading;     
+// import Lights;
 
 // Payload for shadow rays.
 struct ShadowRayPayload {

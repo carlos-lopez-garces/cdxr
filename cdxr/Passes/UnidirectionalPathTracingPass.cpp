@@ -12,6 +12,9 @@ namespace {
     const char *kEntryPointPTClosestHit = "PTClosestHit";
     const char *kEntryPointPTAnyHit = "PTAnyHit";
     const char *kEntryPointPTMiss = "PTMiss";
+
+    // Environment map file.
+    const char* kEnvironmentMap = "MonValley_G_DirtRoad_3k.hdr";
 };
 
 bool UnidirectionalPathTracingPass::initialize(RenderContext* pRenderContext, ResourceManager::SharedPtr pResManager) {
@@ -30,15 +33,15 @@ bool UnidirectionalPathTracingPass::initialize(RenderContext* pRenderContext, Re
         "SpecularBRDF",
     });
     mpResManager->requestTextureResource(mOutputBuffer);
-    mpResManager->requestTextureResource(ResourceManager::kEnvironmentMap);
+    // mpResManager->requestTextureResource(ResourceManager::kEnvironmentMap);
 
+    mpResManager->updateEnvironmentMap(kEnvironmentMap);
     mpResManager->setDefaultSceneName("Data/pink_room/pink_room.fscene");
 
     mpRayTracer = RayLaunch::create(kShaderFile, kEntryPointRayGen);
-
     // Ray type / hit group 0: path tracing rays.
-    mpRayTracer->addHitShader(kShaderFile, kEntryPointPTClosestHit, kEntryPointPTAnyHit);
     mpRayTracer->addMissShader(kShaderFile, kEntryPointPTMiss);
+    mpRayTracer->addHitShader(kShaderFile, kEntryPointPTClosestHit, kEntryPointPTAnyHit);
 
     mpRayTracer->compileRayProgram();
     if (mpScene) {
@@ -59,6 +62,7 @@ void UnidirectionalPathTracingPass::execute(RenderContext* pRenderContext) {
     Texture::SharedPtr diffuseLightIntensityTex = mpResManager->getClearedTexture("DiffuseLightIntensity", vec4(0.0f, 0.0f, 0.0f, 0.0f));
     Texture::SharedPtr specularBRDFTex = mpResManager->getClearedTexture("SpecularBRDF", vec4(0.0f, 0.0f, 0.0f, 0.0f));
     Texture::SharedPtr outputTex = mpResManager->getClearedTexture(mOutputBuffer, vec4(0.0f, 0.0f, 0.0f, 0.0f));
+    Texture::SharedPtr matDiffuseTex = mpResManager->getTexture("MaterialDiffuse");
 
     if (!outputTex || !mpRayTracer || !mpRayTracer->readyToRender()) {
         return;
@@ -74,7 +78,7 @@ void UnidirectionalPathTracingPass::execute(RenderContext* pRenderContext) {
     rayGenVars["gWsPos"] = mpResManager->getTexture("WorldPosition");     
 	rayGenVars["gWsNorm"] = mpResManager->getTexture("WorldNormal");
     rayGenVars["gWsShadingNorm"] = mpResManager->getTexture("WorldShadingNormal");
-	rayGenVars["gMatDif"] = mpResManager->getTexture("MaterialDiffuse");
+	rayGenVars["gMatDif"] = matDiffuseTex;
     rayGenVars["gMatEmissive"] = mpResManager->getTexture("MaterialEmissive");
     rayGenVars["gRayOriginOnLens"] = mpResManager->getTexture("PrimaryRayOriginOnLens");
     rayGenVars["gPrimaryRayDirection"] = mpResManager->getTexture("PrimaryRayDirection");
@@ -90,6 +94,7 @@ void UnidirectionalPathTracingPass::execute(RenderContext* pRenderContext) {
         // DEBUG: a shader variable with name gDiffuseLightIntensity is indeed found in hit group 0.
         ptHitVars["gDiffuseLightIntensity"] = diffuseLightIntensityTex;
         ptHitVars["gSpecularBRDF"] = specularBRDFTex;
+        rayGenVars["gMatDif"] = matDiffuseTex;
     }
 
     // TODO: should be 1 instead of 0, because it is hitgroup 1 that uses gEnvMap; but if set to 1,

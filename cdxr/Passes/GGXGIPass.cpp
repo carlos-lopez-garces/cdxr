@@ -15,6 +15,10 @@ namespace {
     const char *kEntryPointShadowClosestHit = "ShadowClosestHit";
     const char *kEntryPointShadowAnyHit = "ShadowAnyHit";
     const char *kEntryPointShadowMiss = "ShadowMiss";
+
+    const char* kEntryPointMiss1         = "IndirectMiss";
+	const char* kEntryIndirectAnyHit     = "IndirectAnyHit";
+	const char* kEntryIndirectClosestHit = "IndirectClosestHit";
 };
 
 bool GGXGIPass::initialize(RenderContext* pRenderContext, ResourceManager::SharedPtr pResManager) {
@@ -35,8 +39,10 @@ bool GGXGIPass::initialize(RenderContext* pRenderContext, ResourceManager::Share
     mpRayTracer->addHitShader(kShaderFile, kEntryPointShadowClosestHit, kEntryPointShadowAnyHit);
 
     // Ray type / hit group 1: GI rays.
-    mpRayTracer->addMissShader(kShaderFile, kEntryPointGGXGIMiss);
-    mpRayTracer->addHitShader(kShaderFile, kEntryPointGGXGIClosestHit, kEntryPointGGXGIAnyHit);
+    // mpRayTracer->addMissShader(kShaderFile, kEntryPointGGXGIMiss);
+    // mpRayTracer->addHitShader(kShaderFile, kEntryPointGGXGIClosestHit, kEntryPointGGXGIAnyHit);
+    mpRayTracer->addMissShader(kShaderFile, kEntryPointMiss1);
+	mpRayTracer->addHitShader(kShaderFile, kEntryIndirectClosestHit, kEntryIndirectAnyHit);
 
     mpRayTracer->compileRayProgram();
     mpRayTracer->setMaxRecursionDepth(uint32_t(mMaxRayDepth));
@@ -60,22 +66,21 @@ void GGXGIPass::execute(RenderContext* pRenderContext) {
         return;
     }
 
-    auto globalVars = mpRayTracer->getGlobalVars();
-    globalVars["GlobalCB"]["gFrameCount"] = mFrameCount++;
-    globalVars["GlobalCB"]["gMinT"] = mpResManager->getMinTDist();
-    globalVars["RayGenCB"]["gTMax"] = FLT_MAX;
-    globalVars["RayGenCB"]["gMaxDepth"] = mRayDepth;
-    globalVars["RayGenCB"]["gDoDirectGI"] = mDoDirectGI;
-    globalVars["RayGenCB"]["gDoIndirectGI"] = mDoIndirectGI;
-    globalVars["RayGenCB"]["gEmitMult"] = 1.0f;
-    globalVars["gPos"] = mpResManager->getTexture("WorldPosition");
-	globalVars["gNorm"] = mpResManager->getTexture("WorldNormal");
+	auto globalVars = mpRayTracer->getGlobalVars();
+	globalVars["GlobalCB"]["gMinT"]         = mpResManager->getMinTDist();
+	globalVars["GlobalCB"]["gFrameCount"]   = mFrameCount++;
+	globalVars["GlobalCB"]["gDoIndirectGI"] = mDoIndirectGI;
+	globalVars["GlobalCB"]["gDoDirectGI"]   = mDoDirectGI;
+	globalVars["GlobalCB"]["gMaxDepth"]     = mRayDepth;
+    globalVars["GlobalCB"]["gEmitMult"]     = 1.0f;
+	globalVars["gPos"]         = mpResManager->getTexture("WorldPosition");
+	globalVars["gNorm"]        = mpResManager->getTexture("WorldNormal");
 	globalVars["gDiffuseMatl"] = mpResManager->getTexture("MaterialDiffuse");
-	globalVars["gSpecMatl"] = mpResManager->getTexture("MaterialSpecRough");
-	globalVars["gExtraMatl"] = mpResManager->getTexture("MaterialExtraParams");
-    globalVars["gEmissive"] = mpResManager->getTexture("Emissive");
-    globalVars["gEnvMap"] = mpResManager->getTexture(ResourceManager::kEnvironmentMap);
-	globalVars["gOutput"] = outputTex;
+	globalVars["gSpecMatl"]    = mpResManager->getTexture("MaterialSpecRough");
+	globalVars["gExtraMatl"]   = mpResManager->getTexture("MaterialExtraParams");
+    globalVars["gEmissive"]    = mpResManager->getTexture("Emissive");
+	globalVars["gOutput"]      = outputTex;
+	globalVars["gEnvMap"] = mpResManager->getTexture(ResourceManager::kEnvironmentMap);
 
     mpRayTracer->execute(pRenderContext, mpResManager->getScreenSize());
 }

@@ -12,6 +12,7 @@ struct SurfaceInteraction {
 	float3 specularBRDF;
 	float3 wi;
 	bool hit;
+	float3 diffuseColor;
 
 	bool hasHit() {
 		return hit;
