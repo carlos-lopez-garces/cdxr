@@ -39,9 +39,6 @@
     <ClInclude Include="Passes\DiffuseGIPass.h">
       <Filter>Passes</Filter>
     </ClInclude>
-    <ClInclude Include="..\08-ThinLensCamera\Passes\ThinLensGBufferPass.h">
-      <Filter>Passes</Filter>
-    </ClInclude>
     <ClInclude Include="Passes\ToneMappingPass.h">
       <Filter>Passes</Filter>
     </ClInclude>
@@ -51,10 +48,13 @@
     <ClInclude Include="Passes\GGXGIPass.h">
       <Filter>Passes</Filter>
     </ClInclude>
-    <ClInclude Include="..\CommonPasses\LightProbeGBufferPass.h">
-      <Filter>CommonPasses</Filter>
-    </ClInclude>
     <ClInclude Include="Passes\TemporalAccumulationPass.h">
+      <Filter>Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Passes\ThinLensGBufferPass.h">
+      <Filter>Passes</Filter>
+    </ClInclude>
+    <ClInclude Include="Passes\LightProbeGBufferPass.h">
       <Filter>Passes</Filter>
     </ClInclude>
   </ItemGroup>
@@ -84,9 +84,6 @@
       <Filter>Passes</Filter>
     </ClCompile>
     <ClCompile Include="cdxr.cpp" />
-    <ClCompile Include="..\08-ThinLensCamera\Passes\ThinLensGBufferPass.cpp">
-      <Filter>Passes</Filter>
-    </ClCompile>
     <ClCompile Include="Passes\ToneMappingPass.cpp">
       <Filter>Passes</Filter>
     </ClCompile>
@@ -96,10 +93,13 @@
     <ClCompile Include="Passes\GGXGIPass.cpp">
       <Filter>Passes</Filter>
     </ClCompile>
-    <ClCompile Include="..\CommonPasses\LightProbeGBufferPass.cpp">
-      <Filter>CommonPasses</Filter>
-    </ClCompile>
     <ClCompile Include="Passes\TemporalAccumulationPass.cpp">
+      <Filter>Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Passes\ThinLensGBufferPass.cpp">
+      <Filter>Passes</Filter>
+    </ClCompile>
+    <ClCompile Include="Passes\LightProbeGBufferPass.cpp">
       <Filter>Passes</Filter>
     </ClCompile>
   </ItemGroup>
