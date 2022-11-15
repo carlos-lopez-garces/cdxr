@@ -11,7 +11,6 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\06-TemporalAccumulation\Passes\TemporalAccumulationPass.cpp" />
     <ClCompile Include="..\08-ThinLensCamera\Passes\ThinLensGBufferPass.cpp" />
     <ClCompile Include="..\CommonPasses\LightProbeGBufferPass.cpp" />
     <ClCompile Include="..\SharedUtils\FullscreenLaunch.cpp" />
@@ -24,11 +23,11 @@
     <ClCompile Include="cdxr.cpp" />
     <ClCompile Include="Passes\DiffuseGIPass.cpp" />
     <ClCompile Include="Passes\GGXGIPass.cpp" />
+    <ClCompile Include="Passes\TemporalAccumulationPass.cpp" />
     <ClCompile Include="Passes\ToneMappingPass.cpp" />
     <ClCompile Include="Passes\UnidirectionalPathTracingPass.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\06-TemporalAccumulation\Passes\TemporalAccumulationPass.h" />
     <ClInclude Include="..\08-ThinLensCamera\Passes\ThinLensGBufferPass.h" />
     <ClInclude Include="..\CommonPasses\LightProbeGBufferPass.h" />
     <ClInclude Include="..\SharedUtils\FullscreenLaunch.h" />
@@ -40,6 +39,7 @@
     <ClInclude Include="..\SharedUtils\SimpleVars.h" />
     <ClInclude Include="Passes\DiffuseGIPass.h" />
     <ClInclude Include="Passes\GGXGIPass.h" />
+    <ClInclude Include="Passes\TemporalAccumulationPass.h" />
     <ClInclude Include="Passes\ToneMappingPass.h" />
     <ClInclude Include="Passes\UnidirectionalPathTracingPass.h" />
   </ItemGroup>
