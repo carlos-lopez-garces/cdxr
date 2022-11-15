@@ -94,7 +94,7 @@ void UnidirectionalPathTracingPass::execute(RenderContext* pRenderContext) {
         // DEBUG: a shader variable with name gDiffuseLightIntensity is indeed found in hit group 0.
         ptHitVars["gDiffuseLightIntensity"] = diffuseLightIntensityTex;
         ptHitVars["gSpecularBRDF"] = specularBRDFTex;
-        rayGenVars["gMatDif"] = matDiffuseTex;
+        ptHitVars["gMatDif"] = matDiffuseTex;
     }
 
     // TODO: should be 1 instead of 0, because it is hitgroup 1 that uses gEnvMap; but if set to 1,

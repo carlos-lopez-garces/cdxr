@@ -6,9 +6,10 @@ import Shading;
 import Lights;
 import BRDF;
 #include "Constants.hlsli"
-#include "Geometry.hlsli"
 #include "Spectrum.hlsli"
+#include "Geometry.hlsli"
 #include "AlphaTesting.hlsli"
+#include "PRNG.hlsli"
 #include "Sampling.hlsli"
 #include "BxDF.hlsli"
 #include "Integrators/Path.hlsli"
@@ -19,7 +20,6 @@ Texture2D<float4> gWsPos;
 // Shading normal.
 Texture2D<float4> gWsNorm;
 Texture2D<float4> gWsShadingNorm;
-Texture2D<float4> gMatDif;
 Texture2D<float4> gMatEmissive;
 RWTexture2D<float4> gOutput;
 

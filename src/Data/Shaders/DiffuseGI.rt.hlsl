@@ -5,6 +5,9 @@ import ShaderCommon;
 import Shading;     
 import Lights;
 #include "Constants.hlsli"
+#include "Spectrum.hlsli"
+#include "PRNG.hlsli"
+#include "Geometry.hlsli"
 #include "AlphaTesting.hlsli"
 #include "Shadows.hlsli"
 #include "Lighting.hlsli"
