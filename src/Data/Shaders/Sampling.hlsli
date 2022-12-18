@@ -25,6 +25,32 @@ float3 getCosHemisphereSample(inout uint seed, float3 hitNormal) {
     return (r*cos(phi))*tangent + (r*sin(phi))*bitangent + sqrt(1-randVal.x)*hitNormal;
 }
 
+// Samples the unit disk using a concentric mapping of the unit square, which transforms a
+// uniformly distributed random point on the unit square to a point on the unit disk. 
+float2 ConcentricSampleDisk(float2 u) {
+    // Map uniform random numbers to the unit square [-1,1]^2.
+    float2 uOffset = 2.f * u - float2(1, 1);
+
+    // Handle degeneracy at the origin.
+    if (uOffset.x == 0 && uOffset.y == 0) {
+        return float2(0, 0);
+    }
+
+    // Apply concentric mapping from the unit square to the unit disk. This mapping turns
+    // wedges of the square into slices of the disk.
+    float theta, r;
+    if (abs(uOffset.x) > abs(uOffset.y)) {
+        r = uOffset.x;
+        theta = M_PI_4 * (uOffset.y / uOffset.x);
+    } else {
+        r = uOffset.y;
+        theta = M_PI_2 - M_PI_4 * (uOffset.x / uOffset.y);
+    }
+
+    // Map the polar coordinate to a cartesian coordinate.
+    return float2(r * cos(theta), r * sin(theta));
+}
+
 // Uniform sampling of the hemisphere of directions.
 float3 getUniformHemisphereSample(inout uint seed, float3 hitNormal) {
 	float2 randVal = float2(nextRand(seed), nextRand(seed));
