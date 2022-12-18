@@ -1,3 +1,14 @@
+struct Interaction {
+	float3 p;
+	float3 shadingNormal;
+	float3 wo;
+	bool isSurfaceInteraction;
+
+	bool IsSurfaceInteraction() {
+		return isSurfaceInteraction;
+	}
+};
+
 struct SurfaceInteraction {
 	// TODO: optimize packing.
 	float3 p;
@@ -13,6 +24,10 @@ struct SurfaceInteraction {
 	float3 wi;
 	bool hit;
 	float3 diffuseColor;
+
+	bool IsSurfaceInteraction() {
+		return true;
+	}
 
 	bool hasHit() {
 		return hit;
@@ -42,4 +57,12 @@ float3 decodeNormalOctahedron(float2 p) {
 void decodeNormals(float4 encodedNormals, out float3 geometryNormal, out float3 shadingNormal) {
 	geometryNormal = decodeNormalOctahedron(encodedNormals.xy);
 	shadingNormal = decodeNormalOctahedron(encodedNormals.zw);
+}
+
+float3 Dot(float3 u, float3 v) {
+	return u.x*v.x + u.y*v.y + u.z*v.z;
+}
+
+float3 AbsDot(float3 u, float3 v) {
+	return abs(Dot(u, v));
 }
