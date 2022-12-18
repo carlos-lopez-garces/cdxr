@@ -1,11 +1,11 @@
 float3 EstimateDirect(Interaction it, int lightNum, ShadingData shadingData, bool handleMedia) {
     // Radiance.
-    float3 Ld = float3(0.0f, 0.0f, 0.0f);
+    float3 Ld = float3(0.0f);
 
     LightData light = gLights[lightNum];
 
-    float3 Li;
-    float3 wi;
+    float3 Li = float3(0.f);
+    float3 wi = float3(0.f);
     float lightPdf = 0.f;
     float scatteringPdf = 0.f;
 	LightSample lightSample;
@@ -28,7 +28,7 @@ float3 EstimateDirect(Interaction it, int lightNum, ShadingData shadingData, boo
     }
 	wi = normalize(lightSample.L);
     if (lightPdf > 0.f && !IsBlack(Li)) {
-        float3 f;
+        float3 f = float3(0.f);
         // Evaluate BSDF for sampled incident direction.
         if (it.IsSurfaceInteraction()) {
             // TODO: other BRDFs.
@@ -36,8 +36,8 @@ float3 EstimateDirect(Interaction it, int lightNum, ShadingData shadingData, boo
             // to the direction of incidence. To actually place this area differential on the
             // surface, the scattering equation includes the cosine of the theta angle as a factor,
             // measured from the surface normal to the direction of incidence).
-            f = evalDiffuseLambertBrdf(shadingData, lightSample) * AbsDot(wi, it.shadingNormal);
-            scatteringPdf = SameHemisphere(it.wo, wi) ?  AbsCosTheta(wi) * M_1_PI : 0.f;
+            f = evalDiffuseLambertBrdf(shadingData, lightSample) * abs(dot(wi, it.shadingNormal));
+            scatteringPdf = SameHemisphere(it.wo, wi) ? AbsCosTheta(wi) * M_1_PI : 0.f;
         } else {
             // TODO: participating media.
         }

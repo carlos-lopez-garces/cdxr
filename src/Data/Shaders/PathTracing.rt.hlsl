@@ -8,10 +8,13 @@ import BRDF;
 #include "Constants.hlsli"
 #include "Spectrum.hlsli"
 #include "Geometry.hlsli"
+#include "Reflection.hlsli"
 #include "AlphaTesting.hlsli"
 #include "PRNG.hlsli"
 #include "Sampling.hlsli"
 #include "BxDF.hlsli"
+#include "Light.hlsli"
+#include "Integrator.hlsli"
 #include "Integrators/Path.hlsli"
 
 RWTexture2D<float4> gRayOriginOnLens;
@@ -47,6 +50,8 @@ void PathTracingRayGen() {
     // Reconstruct the primary ray used to populate the G-Buffer.
 	RayDesc primaryRay;
 	primaryRay.Origin = gRayOriginOnLens[pixelIndex].xyz;
+    // gOutput[pixelIndex] = gRayOriginOnLens[pixelIndex];
+
     // The direction of the primary ray used to be reconstructed as follows:
     //  normalize(gWsPos[pixelIndex].xyz - primaryRay.Origin)
     // but this is unreliable because there's no valid hit point in gWsPos when
@@ -59,6 +64,12 @@ void PathTracingRayGen() {
 
     PathIntegrator integrator;
     integrator.maxDepth = gMaxBounces;
+    // DEBUG: pixels become ever brighter. What happens if maxDepth is smaller?
+    // =0: All black, except vases, which are pink. Because when there's intersection in bounce 0, routine bails out
+    //     before updating L.
+    // =1: No more brightening. No color, though, just grayscale. No AO either nor shadows.
+    // =2: There's color, but becomes very bright and white very quickly.
+    // integrator.maxDepth = 2;
     L = integrator.Li(primaryRay, randSeed, pixelIndex);
     // DEBUG: what color is sampled by rays pointing to the environment map? Map is rendered correctly.
     // L = gMatDif[pixelIndex].xyz;

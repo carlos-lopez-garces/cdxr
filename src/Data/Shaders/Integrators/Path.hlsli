@@ -9,7 +9,7 @@ struct PTRayPayload {
 
 RWTexture2D<float4> gDiffuseBRDF;
 // DEBUG: the texture created by the resource manager is not being bound to this variable.
-RWTexture2D<float4> gDiffuseLightIntensity;
+RWTexture2D<float4> gDirectLightingRadiance;
 RWTexture2D<float4> gSpecularBRDF;
 // Environment map;
 Texture2D<float4> gEnvMap;
@@ -42,6 +42,7 @@ void spawnRay(RayDesc ray, inout SurfaceInteraction si, uint randSeed, uint2 pix
         si.n = payload.normal;
 
         // TODO: use CosineSampleHemisphere.
+        // A different wi is used in EstimateDirect, the one pointing directly to the chosen light.
         si.wi = normalize(getCosHemisphereSample(randSeed, payload.shadingNormal));
         if (si.wi.z < 0) {
             si.wi.z *= -1;
@@ -50,12 +51,14 @@ void spawnRay(RayDesc ray, inout SurfaceInteraction si, uint randSeed, uint2 pix
         si.diffuseBRDF = gDiffuseBRDF[pixelIndex].xyz;
         // DEBUG. gDiffuseBRDF[pixelIndex].xyz is black.
         // si.diffuseBRDF = float3(0.3, 0.4, 0.5);
-        si.diffusePdf = abs(dot(payload.shadingNormal, si.wi)) * M_1_PI;
+        // si.diffusePdf = abs(dot(payload.shadingNormal, si.wi)) * M_1_PI;
+        float3 wo = normalize(si.p - ray.Origin);
+        si.diffusePdf = SameHemisphere(wo, si.wi) ? AbsCosTheta(si.wi) * M_1_PI : 0.f;
 
         // DEBUG: pixels show the color set/returned in si.diffuseLightIntensity.
-        // DEBUG: whatever is in gDiffuseLightIntensity is indeed seen by the caller in si.diffuseLightIntensity.
-        // gDiffuseLightIntensity[pixelIndex] = float4(0.5, 0.9, 0.7, 1.0);
-        si.diffuseLightIntensity = gDiffuseLightIntensity[pixelIndex].xyz;
+        // DEBUG: whatever is in gDirectLightingRadiance is indeed seen by the caller in si.diffuseLightIntensity.
+        // gDirectLightingRadiance[pixelIndex] = float4(0.5, 0.9, 0.7, 1.0);
+        si.diffuseLightIntensity = gDirectLightingRadiance[pixelIndex].xyz;
         si.diffuseColor = gMatDif[pixelIndex].xyz;
     } else {
         si.diffuseLightIntensity = float4(0.6f, 0.355f, 0.8f, 1.0f).xyz;
@@ -70,6 +73,19 @@ void PTClosestHit(inout PTRayPayload payload, BuiltInTriangleIntersectionAttribu
     // the identifier of the current primitive.
     ShadingData shadingData = getShadingData(PrimitiveIndex(), attributes);
 
+    Interaction it;
+    it.p = shadingData.posW;
+    it.shadingNormal = shadingData.N;
+    // TODO: when implementing participating media, determine whether this is surface or medium.
+    it.isSurfaceInteraction = true;
+    it.wo = -normalize(it.p - WorldRayOrigin());
+    // TODO: handle media.
+    bool handleMedia = false;
+    float3 L = UniformSampleOneLight(it, shadingData, payload.randSeed, handleMedia);
+    gDirectLightingRadiance[payload.pixelIndex] = float4(L, 1.0);
+
+
+
     int lightToSample = min(int(nextRand(payload.randSeed) * gLightsCount), gLightsCount - 1);
 	LightSample lightSample;
 	if (gLights[lightToSample].type == LightDirectional) {
@@ -77,10 +93,10 @@ void PTClosestHit(inout PTRayPayload payload, BuiltInTriangleIntersectionAttribu
     } else {
 		lightSample = evalPointLight(gLights[lightToSample], shadingData.posW);
     }
-	float3 directionToLight = normalize(lightSample.L);
-    gDiffuseLightIntensity[payload.pixelIndex] = float4(lightSample.diffuse, 1.0); 
-    // gDiffuseLightIntensity[payload.pixelIndex] = float4(0.0f,1.0f,1.0f, 1.0f);
-	float distanceToLight = length(lightSample.posW - shadingData.posW);
+	// float3 directionToLight = normalize(lightSample.L);
+    // gDirectLightingRadiance[payload.pixelIndex] = float4(lightSample.diffuse, 1.0); 
+    // gDirectLightingRadiance[payload.pixelIndex] = float4(0.0f,1.0f,1.0f, 1.0f);
+	// float distanceToLight = length(lightSample.posW - shadingData.posW);
 
     // shadingData.N is shading normal.
     payload.shadingNormal = shadingData.N;
@@ -110,11 +126,11 @@ void PTMiss(inout PTRayPayload payload) {
 	float2 uv = WorldToLatitudeLongitude(WorldRayDirection());
 
     // payload.sampledInterreflectionColor = float4(gEnvMap[uint2(uv * envMapDimensions)].rgb, 1.0f);
-    gDiffuseLightIntensity[payload.pixelIndex] = float4(gEnvMap[uint2(uv * envMapDimensions)].rgb, 1.0f);
-    // gDiffuseLightIntensity[payload.pixelIndex] = float4(1.0f,0.0f,1.0f, 1.0f);
+    gDirectLightingRadiance[payload.pixelIndex] = float4(gEnvMap[uint2(uv * envMapDimensions)].rgb, 1.0f);
+    // gDirectLightingRadiance[payload.pixelIndex] = float4(1.0f,0.0f,1.0f, 1.0f);
     // DEBUG: The miss shader doesn't get to execute. Regions of the scene where the environment map should
     // be visible, the pixel color returned is the debug one set in the closesthit shader.
-    gDiffuseLightIntensity[payload.pixelIndex] = float4(0.6f, 0.355f, 0.8f, 1.0f);
+    // gDirectLightingRadiance[payload.pixelIndex] = float4(0.6f, 0.355f, 0.8f, 1.0f);
     payload.hit = false;
 }
 
@@ -136,29 +152,27 @@ struct PathIntegrator {
     int maxDepth;
 
 	float3 Li(RayDesc ray, uint randSeed, uint2 pixelIndex) {
-        SurfaceInteraction si;
-
 		// Radiance.
-        float3 L = float3(0.0f, 0.0f, 0.0f);
+        float3 L = float3(0.0f);
 
         // Throughput weight. The throughput function T(\bar{p}_n) of a path of length n gives the fraction of 
         // radiance that ultimately arrives at the first path vertex (i.e. on the lens of the camera)
-        // after scattering takes places at each of the path's vertices. T(\bar{p}_n) multiplies the product of
+        // after scattering takes place at each of the path's vertices. T(\bar{p}_n) multiplies the product of
         // the BSDF and the geometric coupling factor G(p <-> p') at each of the n-1 vertices of the path that
         // follow the first one.
         //
         // The geometric coupling factor multiplies the |cos(theta)| term of the energy balance equation, the
         // Jacobian determinant that relates solid angle to area (necessary to transform the integral over
         // a set of directions of the energy balance form to an integral over surface area of the surface form,
-        // which ultimately leads to the path form of the LTE), and 0-1 visibility function that determines if
+        // which ultimately leads to the path form of the LTE), and a 0-1 visibility function that determines if
         // 2 points are mutually visible, V(p <-> p').
         //
         // Here, we set aside the Jacobian determinant and the visibility testing function of the geometric
         // coupling factor G(p <-> p') and keep only the |cos(theta)| factor to define a throughput weight:
         // the product of the BSDF at the vertex f(p_j+1, p_j, p+j-1) and the |cos(theta)| factor, divided
-        // by their sampling pdfs (computed and returned by the BSDF). The visibility testing function V(p -> p')
+        // by their sampling pdfs (computed and returned by the BSDF). The visibility testing function V(p <-> p')
         // is not needed because ray casting inherently finds points that the current vertex can see (except
-        // when the ray escapes into the environment, in which cas we sample the environment map and terminate).
+        // when the ray escapes into the environment, in which case we sample the environment map and terminate).
         //
         // TODO: what happened to the Jacobian determinant?
         float3 beta = float3(1.0f, 1.0f, 1.0f);
@@ -166,6 +180,8 @@ struct PathIntegrator {
         bool specularBounce = false;
 
         for (int bounces = 0; ; ++bounces) {
+            SurfaceInteraction si;
+
             // TODO: Handle media boundaries that don't have BSDFs.
             
             // TODO: Revisit. Not in cpbrt.
@@ -198,7 +214,7 @@ struct PathIntegrator {
                     // TODO: sample emitted radiance if the light source is an area light.
                 } else {
                     // TODO: Sample environment map.
-                    L += beta * si.diffuseLightIntensity;
+                    // L += beta * si.diffuseLightIntensity;
                 }
             }
 
@@ -211,6 +227,9 @@ struct PathIntegrator {
                 break;
             }
 
+            // Place the i+1th vertex of the path at a light source by sampling a point on one of them.
+            // Compute the radiance contribution of the ith vertex (the current intersection) as a resut
+            // of direct lighting from the chosen light source.
             L += beta * si.diffuseLightIntensity;
 
             float3 wo = -ray.Direction;
@@ -218,7 +237,7 @@ struct PathIntegrator {
             float pdf = si.diffusePdf;
             float3 f = si.diffuseBRDF;
             // DEBUG.
-            f = si.diffuseColor;
+            // f = si.diffuseColor;
             // DEBUG.
             // return f;
             if (IsBlack(f) || pdf == 0.0f) {

@@ -59,7 +59,7 @@ void UnidirectionalPathTracingPass::initScene(RenderContext* pRenderContext, Sce
 
 void UnidirectionalPathTracingPass::execute(RenderContext* pRenderContext) {
     Texture::SharedPtr diffuseBRDFTex = mpResManager->getClearedTexture("DiffuseBRDF", vec4(0.0f, 0.0f, 0.0f, 0.0f));
-    Texture::SharedPtr diffuseLightIntensityTex = mpResManager->getClearedTexture("DiffuseLightIntensity", vec4(0.0f, 0.0f, 0.0f, 0.0f));
+    Texture::SharedPtr directLightingRadianceTex = mpResManager->getClearedTexture("DiffuseLightIntensity", vec4(0.0f, 0.0f, 0.0f, 0.0f));
     Texture::SharedPtr specularBRDFTex = mpResManager->getClearedTexture("SpecularBRDF", vec4(0.0f, 0.0f, 0.0f, 0.0f));
     Texture::SharedPtr outputTex = mpResManager->getClearedTexture(mOutputBuffer, vec4(0.0f, 0.0f, 0.0f, 0.0f));
     Texture::SharedPtr matDiffuseTex = mpResManager->getTexture("MaterialDiffuse");
@@ -83,7 +83,7 @@ void UnidirectionalPathTracingPass::execute(RenderContext* pRenderContext) {
     rayGenVars["gRayOriginOnLens"] = mpResManager->getTexture("PrimaryRayOriginOnLens");
     rayGenVars["gPrimaryRayDirection"] = mpResManager->getTexture("PrimaryRayDirection");
     rayGenVars["gDiffuseBRDF"] = diffuseBRDFTex;
-    rayGenVars["gDiffuseLightIntensity"] = diffuseLightIntensityTex;
+    rayGenVars["gDirectLightingRadiance"] = directLightingRadianceTex;
     rayGenVars["gSpecularBRDF"] = specularBRDFTex;
 	rayGenVars["gOutput"] = outputTex;
 
@@ -91,8 +91,8 @@ void UnidirectionalPathTracingPass::execute(RenderContext* pRenderContext) {
     for (auto ptHitVars : mpRayTracer->getHitVars(0)) {
         ptHitVars["gDiffuseBRDF"] = diffuseBRDFTex;
         // DEBUG: if you comment this out, the program doesn't break or crash.
-        // DEBUG: a shader variable with name gDiffuseLightIntensity is indeed found in hit group 0.
-        ptHitVars["gDiffuseLightIntensity"] = diffuseLightIntensityTex;
+        // DEBUG: a shader variable with name gDirectLightingRadiance is indeed found in hit group 0.
+        ptHitVars["gDirectLightingRadiance"] = directLightingRadianceTex;
         ptHitVars["gSpecularBRDF"] = specularBRDFTex;
         ptHitVars["gMatDif"] = matDiffuseTex;
     }
