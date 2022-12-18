@@ -51,6 +51,14 @@ float2 ConcentricSampleDisk(float2 u) {
     return float2(r * cos(theta), r * sin(theta));
 }
 
+// Transforms a distribution of points over the unit disk to one of points over the unit
+// hemisphere above it, and returns a sample direction.
+float3 CosineSampleHemisphere(float2 u) {
+	float2 d = ConcentricSampleDisk(u);
+	float z = sqrt(max(0.f, 1 - d.x*d.x - d.y*d.y));
+	return float3(d.x, d.y, z);
+}
+
 // Uniform sampling of the hemisphere of directions.
 float3 getUniformHemisphereSample(inout uint seed, float3 hitNormal) {
 	float2 randVal = float2(nextRand(seed), nextRand(seed));
