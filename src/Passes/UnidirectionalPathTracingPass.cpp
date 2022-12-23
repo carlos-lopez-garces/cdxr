@@ -26,15 +26,10 @@ bool UnidirectionalPathTracingPass::initialize(RenderContext* pRenderContext, Re
         "WorldPosition",
         "WorldNormal",
         "WorldShadingNormal",
-        "MaterialDiffuse",
-        "MaterialEmissive",
-        "DiffuseBRDF",
-        "DiffuseLightIntensity",
-        "SpecularBRDF",
+        "DiffuseColor",
+        "DirectL"
     });
     mpResManager->requestTextureResource(mOutputBuffer);
-    // mpResManager->requestTextureResource(ResourceManager::kEnvironmentMap);
-
     mpResManager->updateEnvironmentMap(kEnvironmentMap);
     mpResManager->setDefaultSceneName("Data/pink_room/pink_room.fscene");
 
@@ -58,11 +53,10 @@ void UnidirectionalPathTracingPass::initScene(RenderContext* pRenderContext, Sce
 }
 
 void UnidirectionalPathTracingPass::execute(RenderContext* pRenderContext) {
-    Texture::SharedPtr diffuseBRDFTex = mpResManager->getClearedTexture("DiffuseBRDF", vec4(0.0f, 0.0f, 0.0f, 0.0f));
-    Texture::SharedPtr directLightingRadianceTex = mpResManager->getClearedTexture("DiffuseLightIntensity", vec4(0.0f, 0.0f, 0.0f, 0.0f));
-    Texture::SharedPtr specularBRDFTex = mpResManager->getClearedTexture("SpecularBRDF", vec4(0.0f, 0.0f, 0.0f, 0.0f));
+    Texture::SharedPtr diffuseColorTex = mpResManager->getClearedTexture("DiffuseColor", vec4(0.0f, 0.0f, 0.0f, 0.0f));
+    Texture::SharedPtr directLTex = mpResManager->getClearedTexture("DirectL", vec4(0.0f, 0.0f, 0.0f, 0.0f));
+    Texture::SharedPtr leTex = mpResManager->getClearedTexture("Le", vec4(0.0f, 0.0f, 0.0f, 0.0f));
     Texture::SharedPtr outputTex = mpResManager->getClearedTexture(mOutputBuffer, vec4(0.0f, 0.0f, 0.0f, 0.0f));
-    Texture::SharedPtr matDiffuseTex = mpResManager->getTexture("MaterialDiffuse");
 
     if (!outputTex || !mpRayTracer || !mpRayTracer->readyToRender()) {
         return;
@@ -74,44 +68,29 @@ void UnidirectionalPathTracingPass::execute(RenderContext* pRenderContext) {
     rayGenVars["RayGenCB"]["gMinBouncesBeforeRussianRoulette"] = mMinBouncesBeforeRussianRoulette;
     rayGenVars["RayGenCB"]["gTMin"] = mpResManager->getMinTDist();
     rayGenVars["RayGenCB"]["gTMax"] = FLT_MAX;
-    rayGenVars["RayGenCB"]["gDoCosineSampling"] = mDoCosSampling;
     rayGenVars["gWsPos"] = mpResManager->getTexture("WorldPosition");     
 	rayGenVars["gWsNorm"] = mpResManager->getTexture("WorldNormal");
     rayGenVars["gWsShadingNorm"] = mpResManager->getTexture("WorldShadingNormal");
-	rayGenVars["gMatDif"] = matDiffuseTex;
-    rayGenVars["gMatEmissive"] = mpResManager->getTexture("MaterialEmissive");
     rayGenVars["gRayOriginOnLens"] = mpResManager->getTexture("PrimaryRayOriginOnLens");
     rayGenVars["gPrimaryRayDirection"] = mpResManager->getTexture("PrimaryRayDirection");
-    rayGenVars["gDiffuseBRDF"] = diffuseBRDFTex;
-    rayGenVars["gDirectLightingRadiance"] = directLightingRadianceTex;
-    rayGenVars["gSpecularBRDF"] = specularBRDFTex;
+    rayGenVars["gDiffuseColor"] = diffuseColorTex;
+    rayGenVars["gDirectL"] = directLTex;
+    rayGenVars["gLe"] = leTex;
 	rayGenVars["gOutput"] = outputTex;
 
     // Set up variables for all hit shaders of the PT shader.
     for (auto ptHitVars : mpRayTracer->getHitVars(0)) {
-        ptHitVars["gDiffuseBRDF"] = diffuseBRDFTex;
-        // DEBUG: if you comment this out, the program doesn't break or crash.
-        // DEBUG: a shader variable with name gDirectLightingRadiance is indeed found in hit group 0.
-        ptHitVars["gDirectLightingRadiance"] = directLightingRadianceTex;
-        ptHitVars["gSpecularBRDF"] = specularBRDFTex;
-        ptHitVars["gMatDif"] = matDiffuseTex;
+        ptHitVars["gDiffuseColor"] = diffuseColorTex;
+        ptHitVars["gDirectL"] = directLTex;
+        ptHitVars["gLe"] = leTex;
     }
 
     // TODO: should be 1 instead of 0, because it is hitgroup 1 that uses gEnvMap; but if set to 1,
     // the render doesn't converge and there are very bright pixels.
-    auto PTMissVars = mpRayTracer->getMissVars(0);
+    auto ptMissVars = mpRayTracer->getMissVars(0);
     // Color sampled by all rays that escape the scene without hitting anything. Constant buffer.
-    PTMissVars["gEnvMap"] = mpResManager->getTexture(ResourceManager::kEnvironmentMap);
+    ptMissVars["gEnvMap"] = mpResManager->getTexture(ResourceManager::kEnvironmentMap);
+    ptMissVars["gDirectL"] = directLTex;
 
     mpRayTracer->execute(pRenderContext, mpResManager->getScreenSize());
-}
-
-void UnidirectionalPathTracingPass::renderGui(Gui* pGui) {
-    int dirty = 0;
-
-    dirty |= (int)pGui->addCheckBox(mDoCosSampling ? "Cosine-weighted hemisphere sampling" : "Uniform hemisphere sampling", mDoCosSampling);
-
-	if (dirty) {
-        setRefreshFlag();
-    }
 }

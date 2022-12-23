@@ -1,4 +1,5 @@
 #pragma once
+#include <random>
 #include "Falcor.h"
 #include "../SharedUtils/RenderPass.h"
 #include "../SharedUtils/RayLaunch.h"
@@ -13,7 +14,7 @@ protected:
 
 	uint32_t mFrameCount = 0x1337u;
 	uint32_t mMaxBounces = 8;
-	uint32_t mMinBouncesBeforeRussianRoulette =3;
+	uint32_t mMinBouncesBeforeRussianRoulette = 3;
 
 	UnidirectionalPathTracingPass(const std::string &outputBuffer) : ::RenderPass("Debug", "Debug Settings") {
 		mOutputBuffer = outputBuffer;
@@ -24,8 +25,6 @@ protected:
     void initScene(RenderContext* pRenderContext, Scene::SharedPtr pScene) override;
 
     void execute(RenderContext* pRenderContext) override;
-
-	void renderGui(Gui* pGui) override;
 
 	bool requiresScene() override { 
 		return true;
