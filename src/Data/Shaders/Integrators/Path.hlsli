@@ -38,14 +38,14 @@ void spawnRay(RayDesc ray, inout SurfaceInteraction si, uint randSeed, uint2 pix
         si.n = payload.normal;
         si.shadingNormal = payload.shadingNormal;
 
-        float3 wo = -normalize(ray.Direction);
+        si.wo = -normalize(ray.Direction);
 
         BxDF bxdf;
-        si.diffuseBRDF = bxdf.Sample_f(wo, si.wi, float2(nextRand(randSeed), nextRand(randSeed)), si.diffusePdf, gDiffuseColor[pixelIndex].rgb);
+        si.diffuseBRDF = bxdf.Sample_f(si.wo, si.wi, float2(nextRand(randSeed), nextRand(randSeed)), si.diffusePdf, gDiffuseColor[pixelIndex].rgb);
 
         si.directL = gDirectL[pixelIndex].xyz;
     } else {
-        si.directL = gDirectL[pixelIndex].xyz;
+        si.Le = gDirectL[pixelIndex].xyz;
     }
 }
 
@@ -164,6 +164,7 @@ struct PathIntegrator {
                     // The camera ray escaped out into the environment. Add the radiance contributions of
                     // infinite area lights (environment maps).
                     // TODO: sample environment map.
+                    L += beta * si.Le;
                 }
             }
 
