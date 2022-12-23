@@ -1,4 +1,11 @@
-float3 EstimateDirect(Interaction it, int lightNum, ShadingData shadingData, bool handleMedia) {
+float3 EstimateDirect(
+    Interaction it,
+    float2 uScattering,
+    int lightNum,
+    float2 uLight,
+    ShadingData shadingData,
+    bool handleMedia
+) {
     // Radiance.
     float3 Ld = float3(0.0f);
 
@@ -36,8 +43,9 @@ float3 EstimateDirect(Interaction it, int lightNum, ShadingData shadingData, boo
             // to the direction of incidence. To actually place this area differential on the
             // surface, the scattering equation includes the cosine of the theta angle as a factor,
             // measured from the surface normal to the direction of incidence).
-            f = evalDiffuseLambertBrdf(shadingData, lightSample) * abs(dot(wi, it.shadingNormal));
-            scatteringPdf = SameHemisphere(it.wo, wi) ? AbsCosTheta(wi) * M_1_PI : 0.f;
+            BxDF bxdf;
+            f = bxdf.f(it.wo, wi, shadingData.diffuse) * abs(dot(wi, it.shadingNormal));
+            scatteringPdf = bxdf.Pdf(it.wo, wi);
         } else {
             // TODO: participating media.
         }
@@ -85,5 +93,8 @@ float3 UniformSampleOneLight(Interaction it, ShadingData shadingData, uint randS
     }
     int lightNum = min(int(nextRand(randSeed) * nLights), nLights - 1);
 
-    return nLights * EstimateDirect(it, lightNum, shadingData, handleMedia);
+    float2 uLight = float2(nextRand(randSeed), nextRand(randSeed));
+    float2 uScattering = float2(nextRand(randSeed), nextRand(randSeed));
+
+    return nLights * EstimateDirect(it, uScattering, lightNum, uLight, shadingData, handleMedia);
 }
