@@ -13,17 +13,20 @@ struct SurfaceInteraction {
 	// TODO: optimize packing.
 	float3 p;
 	float3 n;
-	float4 color;
 	float3 shadingNormal;
+	float4 color;
 	float16_t2 uvs;
 	float3 emissive;
 	float3 diffuseBRDF;
 	float diffusePdf;
-	float3 diffuseLightIntensity;
 	float3 specularBRDF;
+
 	float3 wi;
+	float3 wo;
+	float3 directL;
+	float3 Le;
+
 	bool hit;
-	float3 diffuseColor;
 
 	bool IsSurfaceInteraction() {
 		return true;
