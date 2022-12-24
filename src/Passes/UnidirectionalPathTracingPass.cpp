@@ -12,6 +12,9 @@ namespace {
     const char *kEntryPointPTClosestHit = "PTClosestHit";
     const char *kEntryPointPTAnyHit = "PTAnyHit";
     const char *kEntryPointPTMiss = "PTMiss";
+    const char *kEntryPointShadowClosestHit = "ShadowClosestHit";
+    const char *kEntryPointShadowAnyHit = "ShadowAnyHit";
+    const char *kEntryPointShadowMiss = "ShadowMiss";
 
     // Environment map file.
     const char* kEnvironmentMap = "MonValley_G_DirtRoad_3k.hdr";
@@ -37,6 +40,9 @@ bool UnidirectionalPathTracingPass::initialize(RenderContext* pRenderContext, Re
     // Ray type / hit group 0: path tracing rays.
     mpRayTracer->addMissShader(kShaderFile, kEntryPointPTMiss);
     mpRayTracer->addHitShader(kShaderFile, kEntryPointPTClosestHit, kEntryPointPTAnyHit);
+    // Ray type / hit group 1: shadow rays.
+    mpRayTracer->addMissShader(kShaderFile, kEntryPointShadowMiss);
+    mpRayTracer->addHitShader(kShaderFile, kEntryPointShadowClosestHit, kEntryPointShadowAnyHit);
 
     mpRayTracer->compileRayProgram();
     if (mpScene) {
@@ -45,7 +51,6 @@ bool UnidirectionalPathTracingPass::initialize(RenderContext* pRenderContext, Re
 
     return true;
 }
-
 
 void UnidirectionalPathTracingPass::initScene(RenderContext* pRenderContext, Scene::SharedPtr pScene) {
     mpScene = std::dynamic_pointer_cast<RtScene>(pScene);

@@ -1,5 +1,6 @@
 struct Interaction {
 	float3 p;
+	float3 n;
 	float3 shadingNormal;
 	float3 wo;
 	bool isSurfaceInteraction;

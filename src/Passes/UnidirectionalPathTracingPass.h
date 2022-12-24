@@ -16,7 +16,7 @@ protected:
 	uint32_t mMaxBounces = 8;
 	uint32_t mMinBouncesBeforeRussianRoulette = 3;
 
-	UnidirectionalPathTracingPass(const std::string &outputBuffer) : ::RenderPass("Debug", "Debug Settings") {
+	UnidirectionalPathTracingPass(const std::string &outputBuffer) : ::RenderPass("UnidirectionalPathTracing", "UnidirectionalPathTracing Settings") {
 		mOutputBuffer = outputBuffer;
 	}
 

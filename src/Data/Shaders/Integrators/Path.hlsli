@@ -1,3 +1,9 @@
+RWTexture2D<float4> gDiffuseColor;
+RWTexture2D<float3> gDirectL;
+RWTexture2D<float3> gLe;
+// Environment map;
+Texture2D<float4> gEnvMap;
+
 struct PTRayPayload {
     uint randSeed;
     float3 shadingNormal;
@@ -6,12 +12,6 @@ struct PTRayPayload {
     uint2 pixelIndex;
     bool hit;
 };
-
-RWTexture2D<float4> gDiffuseColor;
-RWTexture2D<float3> gDirectL;
-RWTexture2D<float3> gLe;
-// Environment map;
-Texture2D<float4> gEnvMap;
 
 void spawnRay(RayDesc ray, inout SurfaceInteraction si, uint randSeed, uint2 pixelIndex) {
     PTRayPayload payload;
@@ -59,6 +59,7 @@ void PTClosestHit(inout PTRayPayload payload, BuiltInTriangleIntersectionAttribu
 
     Interaction it;
     it.p = shadingData.posW;
+    it.n = vsOut.normalW;
     it.shadingNormal = shadingData.N;
     // TODO: when implementing participating media, determine whether this is surface or medium.
     it.isSurfaceInteraction = true;

@@ -16,6 +16,7 @@ float3 EstimateDirect(
     float lightPdf = 0.f;
     float scatteringPdf = 0.f;
 	LightSample lightSample;
+    VisibilityTester visibility;
 	if (light.type == LightPoint) {
 		lightSample = evalPointLight(light, it.p);
 
@@ -24,11 +25,18 @@ float3 EstimateDirect(
         lightPdf = 1.f;
         // Which is intensity * falloff.
         Li = lightSample.diffuse;
+
+        visibility.n = it.n;
+        visibility.p0 = it.p;
+        visibility.p1 = lightSample.posW;
     } else if (light.type == LightDirectional) {
 		lightSample = evalDirectionalLight(light, it.p);
         lightPdf = 1.f;
         // Which is equal to intensity.
         Li = lightSample.diffuse;
+
+        // TODO: visibility testing for directional light.
+        visibility.n = float3(0.f);
     } else {
         // TODO: area lights.
         return Ld;
@@ -55,8 +63,9 @@ float3 EstimateDirect(
 
             if (handleMedia) {
                 // TODO: handle media.
-            } else {
-                // TODO: test for visibility.
+            } else if (!visibility.Unoccluded()) {
+                // The light source doesn't illuminate the surface from the sampled direction.
+                Li = float3(0.f);
             }
 
             // Add light's contribution to reflected radiance.
