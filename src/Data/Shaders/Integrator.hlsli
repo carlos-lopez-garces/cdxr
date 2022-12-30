@@ -35,8 +35,12 @@ float3 EstimateDirect(
         // Which is equal to intensity.
         Li = lightSample.diffuse;
 
-        // TODO: visibility testing for directional light.
-        visibility.n = float3(0.f);
+        // Place p1 outside the scene along the light source's direction. A distant
+        // light doesn't emit radiance from any particular location, just along the
+        // same direction.
+        visibility.n = it.n;
+        visibility.p0 = it.p;
+        visibility.p1 = it.p + lightSample.L * (2 * 1e3f);
     } else {
         // TODO: area lights.
         return Ld;
