@@ -1,7 +1,7 @@
 #define BXDF_DIFFUSE 1
 #define BXDF_SPECULAR 2
 
-struct BxDF {
+struct LambertianBRDF {
     float3 f(float3 wo, float3 wi, float3 diffuseColor) {
         return diffuseColor * M_1_PI;
     }
@@ -27,7 +27,7 @@ struct BxDF {
         // A different wi is used in EstimateDirect, the one pointing directly to the chosen light.
         // si.wi = normalize(getCosHemisphereSample(randSeed, payload.shadingNormal));
         wi = CosineSampleHemisphere(u);
-        if (wo.z < 0) {
+        if (wi.z < 0) {
             // CosineSampleHemisphere samples the hemisphere on the normal's side. When the outgoing
             // direction wo lies on the hemisphere opposite to the normal, wi will have been sampled
             // from the wrong hemisphere. Bring it to wo's side.

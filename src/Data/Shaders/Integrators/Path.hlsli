@@ -40,7 +40,7 @@ void spawnRay(RayDesc ray, inout SurfaceInteraction si, uint randSeed, uint2 pix
 
         si.wo = -normalize(ray.Direction);
 
-        BxDF bxdf;
+        LambertianBRDF bxdf;
         si.diffuseBRDF = bxdf.Sample_f(si.wo, si.wi, float2(nextRand(randSeed), nextRand(randSeed)), si.diffusePdf, gDiffuseColor[pixelIndex].rgb);
 
         si.directL = gDirectL[pixelIndex].xyz;

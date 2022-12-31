@@ -55,7 +55,7 @@ float3 EstimateDirect(
             // to the direction of incidence. To actually place this area differential on the
             // surface, the scattering equation includes the cosine of the theta angle as a factor,
             // measured from the surface normal to the direction of incidence).
-            BxDF bxdf;
+            LambertianBRDF bxdf;
             f = bxdf.f(it.wo, wi, shadingData.diffuse) * abs(dot(wi, it.shadingNormal));
             scatteringPdf = bxdf.Pdf(it.wo, wi);
         } else {
