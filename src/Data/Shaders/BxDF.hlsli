@@ -52,6 +52,8 @@ struct LambertianBRDF {
 };
 
 struct SpecularBRDF {
+    float3 R;
+
     // Computes the spectral distribution of a radiometric quantity over wavelength for an
     // arbitrary pair of outgoing and incident directions. Since there's no chance that an
     // arbitrary pair will satisfy the perfect reflection relation, the returned reflectance
@@ -67,9 +69,7 @@ struct SpecularBRDF {
     float3 Sample_f(
         float3 wo,
         inout float3 wi,
-        inout float pdf,
-        ShadingData sd,
-        LightSample ls
+        inout float pdf
     ) {
         // Compute perfect specular reflection direction about the normal. The normal vector doesn't
         // need to be known because it corresponds to the vertical axis in the reflection coordinate
@@ -81,7 +81,7 @@ struct SpecularBRDF {
         // The perfect reflection direction wi is always sampled with probability 1.
         pdf = 1;
 
-        return evalSpecularBrdf(sd, ls);
+        return evaluateNoOpFresnel(CosTheta(wi)) * R / AbsCosTheta(wi);
     }
 
     // Evaluates the probability that incident direction wi gets sampled for the given outgoing

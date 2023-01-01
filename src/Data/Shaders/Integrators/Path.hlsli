@@ -40,8 +40,13 @@ void spawnRay(RayDesc ray, inout SurfaceInteraction si, uint randSeed, uint2 pix
 
         si.wo = -normalize(ray.Direction);
 
-        LambertianBRDF bxdf;
-        si.diffuseBRDF = bxdf.Sample_f(si.wo, si.wi, float2(nextRand(randSeed), nextRand(randSeed)), si.diffusePdf, gDiffuseColor[pixelIndex].rgb);
+        LambertianBRDF diffuseBRDF;
+        si.diffuseBRDF = diffuseBRDF.Sample_f(si.wo, si.wi, float2(nextRand(randSeed), nextRand(randSeed)), si.diffusePdf, gDiffuseColor[pixelIndex].rgb);
+
+        SpecularBRDF specularBRDF;
+        // TODO: specify somewhere else.
+        specularBRDF.R = float3(1.f, 1.f, 1.f);
+        si.specularBRDF = specularBRDF.Sample_f(si.wo, si.wi, si.specularPdf);
 
         si.directL = gDirectL[pixelIndex].xyz;
     } else {

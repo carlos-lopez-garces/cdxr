@@ -98,7 +98,12 @@ float3 EstimateDirect(
 // Evaluates the direct lighting outgoing radiance / scattering equation at the
 // intersection point by taking a single sample from a single light source chosen
 // uniformly at random. 
-float3 UniformSampleOneLight(Interaction it, ShadingData shadingData, uint randSeed, bool handleMedia) {
+float3 UniformSampleOneLight(
+    Interaction it,
+    ShadingData shadingData,
+    uint randSeed,
+    bool handleMedia
+) {
     // Randomly choose single light to sample.
     int nLights = gLightsCount;
     if (nLights == 0) {

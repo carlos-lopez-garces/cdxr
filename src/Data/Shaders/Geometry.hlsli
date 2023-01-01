@@ -21,6 +21,7 @@ struct SurfaceInteraction {
 	float3 diffuseBRDF;
 	float diffusePdf;
 	float3 specularBRDF;
+	float specularPdf;
 
 	float3 wi;
 	float3 wo;

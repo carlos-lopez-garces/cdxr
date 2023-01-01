@@ -12,6 +12,7 @@ import BRDF;
 #include "AlphaTesting.hlsli"
 #include "PRNG.hlsli"
 #include "Sampling.hlsli"
+#include "FresnelEquations.hlsli"
 #include "BxDF.hlsli"
 #include "Light.hlsli"
 #include "Integrator.hlsli"
