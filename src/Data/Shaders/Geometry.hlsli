@@ -3,6 +3,8 @@ struct Interaction {
 	float3 n;
 	float3 shadingNormal;
 	float3 wo;
+	float3 wi;
+	float pdf;
 	bool isSurfaceInteraction;
 
 	bool IsSurfaceInteraction() {
@@ -18,11 +20,8 @@ struct SurfaceInteraction {
 	float4 color;
 	float16_t2 uvs;
 	float3 emissive;
-	float3 diffuseBRDF;
-	float diffusePdf;
-	float3 specularBRDF;
-	float specularPdf;
-
+	float3 brdf;
+	float pdf;
 	float3 wi;
 	float3 wo;
 	float3 directL;
@@ -41,7 +40,7 @@ struct SurfaceInteraction {
 	void ComputeScatteringFunctions(RayDesc ray) {
 		// TODO: Compute differentials of P and UV mappings. They may be needed next by materials
     	// that evaluate textures to obtain BSDF parameters.
-		if (IsBlack(diffuseBRDF)) {
+		if (IsBlack(brdf)) {
 			return;
 		}
 	}

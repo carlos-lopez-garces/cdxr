@@ -30,7 +30,12 @@ bool UnidirectionalPathTracingPass::initialize(RenderContext* pRenderContext, Re
         "WorldNormal",
         "WorldShadingNormal",
         "DiffuseColor",
-        "DirectL"
+        "DirectL",
+        "Le",
+        "Wo",
+        "Wi",
+        "BDRF",
+        "PDF"
     });
     mpResManager->requestTextureResource(mOutputBuffer);
     mpResManager->updateEnvironmentMap(kEnvironmentMap);
@@ -61,6 +66,10 @@ void UnidirectionalPathTracingPass::execute(RenderContext* pRenderContext) {
     Texture::SharedPtr diffuseColorTex = mpResManager->getClearedTexture("DiffuseColor", vec4(0.0f, 0.0f, 0.0f, 0.0f));
     Texture::SharedPtr directLTex = mpResManager->getClearedTexture("DirectL", vec4(0.0f, 0.0f, 0.0f, 0.0f));
     Texture::SharedPtr leTex = mpResManager->getClearedTexture("Le", vec4(0.0f, 0.0f, 0.0f, 0.0f));
+    Texture::SharedPtr woTex = mpResManager->getClearedTexture("Wo", vec4(0.0f, 0.0f, 0.0f, 0.0f));
+    Texture::SharedPtr wiTex = mpResManager->getClearedTexture("Wi", vec4(0.0f, 0.0f, 0.0f, 0.0f));
+    Texture::SharedPtr brdfTex = mpResManager->getClearedTexture("BRDF", vec4(0.0f, 0.0f, 0.0f, 0.0f));
+    Texture::SharedPtr pdfTex = mpResManager->getClearedTexture("PDF", vec4(0.0f, 0.0f, 0.0f, 0.0f));
     Texture::SharedPtr outputTex = mpResManager->getClearedTexture(mOutputBuffer, vec4(0.0f, 0.0f, 0.0f, 0.0f));
 
     if (!outputTex || !mpRayTracer || !mpRayTracer->readyToRender()) {
@@ -81,6 +90,10 @@ void UnidirectionalPathTracingPass::execute(RenderContext* pRenderContext) {
     rayGenVars["gDiffuseColor"] = diffuseColorTex;
     rayGenVars["gDirectL"] = directLTex;
     rayGenVars["gLe"] = leTex;
+    rayGenVars["gWo"] = woTex;
+    rayGenVars["gWi"] = wiTex;
+    rayGenVars["gBRDF"] = brdfTex;
+    rayGenVars["gPDF"] = pdfTex;
 	rayGenVars["gOutput"] = outputTex;
 
     // Set up variables for all hit shaders of the PT shader.
@@ -88,6 +101,10 @@ void UnidirectionalPathTracingPass::execute(RenderContext* pRenderContext) {
         ptHitVars["gDiffuseColor"] = diffuseColorTex;
         ptHitVars["gDirectL"] = directLTex;
         ptHitVars["gLe"] = leTex;
+        ptHitVars["gWo"] = woTex;
+        ptHitVars["gWi"] = wiTex;
+        ptHitVars["gBRDF"] = brdfTex;
+        ptHitVars["gPDF"] = pdfTex;
     }
 
     // TODO: should be 1 instead of 0, because it is hitgroup 1 that uses gEnvMap; but if set to 1,

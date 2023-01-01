@@ -1,6 +1,10 @@
 RWTexture2D<float4> gDiffuseColor;
 RWTexture2D<float3> gDirectL;
 RWTexture2D<float3> gLe;
+RWTexture2D<float3> gWo;
+RWTexture2D<float3> gWi;
+RWTexture2D<float3> gBRDF;
+RWTexture2D<float> gPDF;
 // Environment map;
 Texture2D<float4> gEnvMap;
 
@@ -37,17 +41,10 @@ void spawnRay(RayDesc ray, inout SurfaceInteraction si, uint randSeed, uint2 pix
         si.p = payload.hitPoint;
         si.n = payload.normal;
         si.shadingNormal = payload.shadingNormal;
-
-        si.wo = -normalize(ray.Direction);
-
-        LambertianBRDF diffuseBRDF;
-        si.diffuseBRDF = diffuseBRDF.Sample_f(si.wo, si.wi, float2(nextRand(randSeed), nextRand(randSeed)), si.diffusePdf, gDiffuseColor[pixelIndex].rgb);
-
-        SpecularBRDF specularBRDF;
-        // TODO: specify somewhere else.
-        specularBRDF.R = float3(1.f, 1.f, 1.f);
-        si.specularBRDF = specularBRDF.Sample_f(si.wo, si.wi, si.specularPdf);
-
+        si.wo = gWo[pixelIndex];
+        si.wi = gWi[pixelIndex];
+        si.brdf = gBRDF[pixelIndex];
+        si.pdf = gPDF[pixelIndex];
         si.directL = gDirectL[pixelIndex].xyz;
     } else {
         si.Le = gDirectL[pixelIndex].xyz;
@@ -75,6 +72,24 @@ void PTClosestHit(inout PTRayPayload payload, BuiltInTriangleIntersectionAttribu
     gDirectL[payload.pixelIndex] = L;
 
     gDiffuseColor[payload.pixelIndex] = float4(shadingData.diffuse, shadingData.opacity);
+
+    LambertianBRDF diffuseBRDF;
+    gBRDF[payload.pixelIndex] = diffuseBRDF.Sample_f(
+        it.wo,
+        it.wi,
+        float2(nextRand(payload.randSeed), nextRand(payload.randSeed)),
+        it.pdf,
+        gDiffuseColor[payload.pixelIndex].rgb
+    );
+
+    SpecularBRDF specularBRDF;
+    // TODO: specify somewhere else.
+    specularBRDF.R = float3(1.f, 1.f, 1.f);
+    gBRDF[payload.pixelIndex] = specularBRDF.Sample_f(it.wo, it.wi, it.pdf);
+
+    gWo[payload.pixelIndex] = it.wo;
+    gWi[payload.pixelIndex] = it.wi;
+    gPDF[payload.pixelIndex] = it.pdf;
 
     payload.hitPoint = vsOut.posW;
     payload.normal = vsOut.normalW;
@@ -189,8 +204,8 @@ struct PathIntegrator {
 
             float3 wo = -ray.Direction;
             float3 wi = si.wi;
-            float pdf = si.diffusePdf;
-            float3 f = si.diffuseBRDF;
+            float pdf = si.pdf;
+            float3 f = si.brdf;
             if (IsBlack(f) || pdf == 0.0f) {
                 break;
             }
