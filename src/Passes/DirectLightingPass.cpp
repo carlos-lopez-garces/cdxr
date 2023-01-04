@@ -26,16 +26,13 @@ bool DirectLightingPass::initialize(RenderContext* pRenderContext, ResourceManag
     mpResManager->requestTextureResources({
         "PrimaryRayOriginOnLens",
         "PrimaryRayDirection",
-        "WorldPosition",
-        "WorldNormal",
-        "WorldShadingNormal",
         "MaterialDiffuse",
-        "MaterialEmissive",
         "DiffuseBRDF",
         "SpecularBRDF",
         "DiffuseColor",
         "DirectL",
-        "Le"
+        "Le",
+        "BRDFProbability"
     });
     mpResManager->requestTextureResource(mOutputBuffer);
 
@@ -69,9 +66,9 @@ void DirectLightingPass::execute(RenderContext* pRenderContext) {
     Texture::SharedPtr diffuseBRDFTex = mpResManager->getClearedTexture("DiffuseBRDF", vec4(0.0f, 0.0f, 0.0f, 0.0f));
     Texture::SharedPtr specularBRDFTex = mpResManager->getClearedTexture("SpecularBRDF", vec4(0.0f, 0.0f, 0.0f, 0.0f));
     Texture::SharedPtr outputTex = mpResManager->getClearedTexture(mOutputBuffer, vec4(0.0f, 0.0f, 0.0f, 0.0f));
-    Texture::SharedPtr matDiffuseTex = mpResManager->getTexture("MaterialDiffuse");
     Texture::SharedPtr directLTex = mpResManager->getClearedTexture("DirectL", vec4(0.0f, 0.0f, 0.0f, 0.0f));
     Texture::SharedPtr leTex = mpResManager->getClearedTexture("Le", vec4(0.0f, 0.0f, 0.0f, 0.0f));
+    Texture::SharedPtr brdfProbabilityTex = mpResManager->getClearedTexture("BRDFProbability", vec4(0.0f, 0.0f, 0.0f, 0.0f));
 
     if (!outputTex || !mpRayTracer || !mpRayTracer->readyToRender()) {
         return;
@@ -80,14 +77,8 @@ void DirectLightingPass::execute(RenderContext* pRenderContext) {
     auto rayGenVars = mpRayTracer->getRayGenVars();
     rayGenVars["RayGenCB"]["gFrameCount"] = mFrameCount++;
     rayGenVars["RayGenCB"]["gMaxBounces"] = mMaxBounces;
-    rayGenVars["RayGenCB"]["gMinBouncesBeforeRussianRoulette"] = mMinBouncesBeforeRussianRoulette;
     rayGenVars["RayGenCB"]["gTMin"] = mpResManager->getMinTDist();
     rayGenVars["RayGenCB"]["gTMax"] = FLT_MAX;
-    rayGenVars["gWsPos"] = mpResManager->getTexture("WorldPosition");     
-	rayGenVars["gWsNorm"] = mpResManager->getTexture("WorldNormal");
-    rayGenVars["gWsShadingNorm"] = mpResManager->getTexture("WorldShadingNormal");
-	rayGenVars["gMatDif"] = matDiffuseTex;
-    rayGenVars["gMatEmissive"] = mpResManager->getTexture("MaterialEmissive");
     rayGenVars["gRayOriginOnLens"] = mpResManager->getTexture("PrimaryRayOriginOnLens");
     rayGenVars["gPrimaryRayDirection"] = mpResManager->getTexture("PrimaryRayDirection");
     rayGenVars["gDiffuseBRDF"] = diffuseBRDFTex;
@@ -95,16 +86,17 @@ void DirectLightingPass::execute(RenderContext* pRenderContext) {
     rayGenVars["gDiffuseColor"] = diffuseColorTex;
     rayGenVars["gLe"] = leTex;
     rayGenVars["gDirectL"] = directLTex;
+    rayGenVars["gBRDFProbability"] = brdfProbabilityTex;
 	rayGenVars["gOutput"] = outputTex;
 
     // Set up variables for all hit shaders.
     for (auto dlHitVars : mpRayTracer->getHitVars(0)) {
         dlHitVars["gDiffuseBRDF"] = diffuseBRDFTex;
         dlHitVars["gSpecularBRDF"] = specularBRDFTex;
-        dlHitVars["gMatDif"] = matDiffuseTex;
         dlHitVars["gDiffuseColor"] = diffuseColorTex;
         dlHitVars["gDirectL"] = directLTex;
         dlHitVars["gLe"] = leTex;
+        dlHitVars["gBRDFProbability"] = brdfProbabilityTex;
     }
 
     // TODO: should be 1 instead of 0, because it is hitgroup 1 that uses gEnvMap; but if set to 1,

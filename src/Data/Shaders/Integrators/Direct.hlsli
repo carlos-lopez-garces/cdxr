@@ -12,12 +12,10 @@ RWTexture2D<float3> gLe;
 
 RWTexture2D<float4> gDiffuseBRDF;
 RWTexture2D<float4> gDiffuseColor;
-RWTexture2D<float4> gDirectLightingRadiance;
 RWTexture2D<float4> gSpecularBRDF;
+RWTexture2D<float3> gBRDFProbability;
 
-// Environment map;
 Texture2D<float4> gEnvMap;
-Texture2D<float4> gMatDif;
 
 void spawnRay(RayDesc ray, inout SurfaceInteraction si, uint randSeed, uint2 pixelIndex) {
     DLRayPayload payload;
@@ -45,8 +43,12 @@ void spawnRay(RayDesc ray, inout SurfaceInteraction si, uint randSeed, uint2 pix
         LambertianBRDF bxdf;
         si.brdf = bxdf.Sample_f(si.wo, si.wi, float2(nextRand(randSeed), nextRand(randSeed)), si.pdf, gDiffuseColor[pixelIndex].rgb);
 		si.directL = gDirectL[pixelIndex];
-		si.Le = gLe[pixelIndex];
+        // TODO: add emissive.
+        // Radiance emitted by emissive objects.
+		si.Le = float(0.f);
+        si.brdfProbability = gBRDFProbability[pixelIndex].x;
     } else {
+        // Radiance emitted by environment lights.
         si.Le = gDirectL[pixelIndex].xyz;
     }
 }
@@ -68,6 +70,7 @@ void DLClosestHit(inout DLRayPayload payload, BuiltInTriangleIntersectionAttribu
 	float brdfProbability = getBRDFProbability(gMaterial, shadingData.V, it.shadingNormal);
     float3 L = UniformSampleOneLight(it, shadingData, payload.randSeed, brdfProbability, handleMedia);
     gDirectL[payload.pixelIndex] = L;
+    gBRDFProbability[payload.pixelIndex] = float3(brdfProbability, brdfProbability, brdfProbability);
 
 	// TODO: if surface is area light, sample emitted radiance.
 
@@ -97,6 +100,114 @@ void DLMiss(inout DLRayPayload payload) {
     payload.hit = false;
 }
 
+float3 Li2(RayDesc ray, uint randSeed, uint2 pixelIndex, int depth, int maxDepth) {
+    float3 L = float3(0.f);
+    SurfaceInteraction si;
+    spawnRay(ray, si, randSeed, pixelIndex);
+    if (!si.hasHit()) {
+        if (depth == 0) {
+            L += si.Le;
+        }
+        return L;
+    }
+    float3 wo = si.wo;
+    L += si.Le;
+    if (gLightsCount > 0) {
+        L += si.directL;
+    }
+    return L;
+}
+
+float3 Li1(RayDesc ray, uint randSeed, uint2 pixelIndex, int depth, int maxDepth) {
+    float3 L = float3(0.f);
+    SurfaceInteraction si;
+    spawnRay(ray, si, randSeed, pixelIndex);
+    if (!si.hasHit()) {
+        if (depth == 0) {
+            L += si.Le;
+        }
+        return L;
+    }
+    float3 wo = si.wo;
+    L += si.Le;
+    if (gLightsCount > 0) {
+        L += si.directL;
+    }
+    if (depth+1 < maxDepth && nextRand(randSeed) < si.brdfProbability) {
+        L += SpecularReflect2(ray, si, randSeed, pixelIndex, depth, maxDepth);
+    }
+    return L;
+}
+
+float3 SpecularReflect2(
+    // TODO: should be RayDifferential.
+    RayDesc ray,
+    SurfaceInteraction si,
+    uint randSeed,
+    uint2 pixelIndex,
+    int depth,
+    int maxDepth
+) {
+    float3 wo = si.wo;
+    float3 wi;
+    float pdf;
+
+    SpecularBRDF specularBRDF;
+    // TODO: set somewhere else.
+    specularBRDF.R = float3(1.f, 1.f, 1.f); 
+    float3 f = specularBRDF.Sample_f(wo, wi, pdf);
+
+    float3 ns = si.shadingNormal;
+    if (pdf > 0 && !IsBlack(f) && abs(dot(wi, ns)) != 0) {
+        RayDesc rd;
+        rd.Origin = si.p;
+        rd.Direction = wi;
+        rd.TMin = 0.0f;
+        rd.TMax = 1e+38f;
+        return f * Li2(rd, randSeed, pixelIndex, depth+1, maxDepth) * abs(dot(wi, ns)) / pdf;
+    } else {
+        return float3(0.f, 0.f, 0.f);
+    }
+}
+
+float3 SpecularReflect(
+    // TODO: should be RayDifferential.
+    RayDesc ray,
+    SurfaceInteraction si,
+    uint randSeed,
+    uint2 pixelIndex,
+    int depth,
+    int maxDepth
+) {
+    float3 wo = si.wo;
+    float3 wi;
+    float pdf;
+
+    SpecularBRDF specularBRDF;
+    // TODO: set somewhere else.
+    specularBRDF.R = float3(1.f, 1.f, 1.f); 
+    float3 f = specularBRDF.Sample_f(wo, wi, pdf);
+
+    float3 ns = si.shadingNormal;
+    if (pdf > 0 && !IsBlack(f) && abs(dot(wi, ns)) != 0) {
+        RayDesc rd;
+        rd.Origin = si.p;
+        rd.Direction = wi;
+        rd.TMin = 0.0f;
+        rd.TMax = 1e+38f;
+        // TODO: compute differentials.
+
+        // Compute sum term of Monte Carlo estimator of scattering equation. The product of the
+        // BRDF f and the incident radiance Li gives the fraction of incident light that will get
+        // reflected. The AbsDot(wi, ns) = cos(wi, ns) factor places the area differential on the
+        // surface (the area differential dA is originally perpendicular to the wi solid angle).
+        // return f * Li(rd, randSeed, pixelIndex, depth+1, maxDepth) * abs(dot(wi, ns)) / pdf;
+        return f * Li1(rd, randSeed, pixelIndex, depth+1, maxDepth) * abs(dot(wi, ns)) / pdf;
+    } else {
+        return float3(0.f, 0.f, 0.f);
+    }
+}
+
 struct DirectLightingIntegrator {
 	int maxDepth;
 
@@ -107,7 +218,9 @@ struct DirectLightingIntegrator {
 		SurfaceInteraction si;
 		spawnRay(ray, si, randSeed, pixelIndex);
 		if (!si.hasHit()) {
-			// TODO: add all lights' Le; si.Le is only of the environment map.
+            // The ray escapes the scene bounds without having hit anything. Add
+            // radiance emitted by environment lights. Light::Le is implemented
+            // only by InfiniteAreaLight; the rest return black.
             L += si.Le;
 
 			return L;
@@ -121,11 +234,10 @@ struct DirectLightingIntegrator {
 
 		if (gLightsCount > 0) {
 			// TODO: LightStrategy::UniformSampleAll.
-
 			L += si.directL;
 		}
 
-		if (depth+1 < maxDepth) {
+		if (depth+1 < maxDepth && nextRand(randSeed) < si.brdfProbability) {
 			// Trace rays recursively for specular reflection and transmission. In general, the direct
 			// lighting integrator estimates incident radiance using samples from light sources that
 			// illuminate the surface directly. But in order for a surface with a (perfect) specular
@@ -133,7 +245,8 @@ struct DirectLightingIntegrator {
 			// radiance that bounces off of those objects in the direction of perfect specular reflection
 			// toward the intersection point.
 
-			// TODO: call SpecularReflect and SpecularTransmit.
+			// TODO: call SpecularTransmit.
+            L += SpecularReflect(ray, si, randSeed, pixelIndex, depth, maxDepth);
 		}
 
         return L;

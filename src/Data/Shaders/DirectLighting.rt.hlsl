@@ -20,17 +20,11 @@ import BRDF;
 
 RWTexture2D<float4> gRayOriginOnLens;
 RWTexture2D<float4> gPrimaryRayDirection;
-Texture2D<float4> gWsPos;
-// Shading normal.
-Texture2D<float4> gWsNorm;
-Texture2D<float4> gWsShadingNorm;
-Texture2D<float4> gMatEmissive;
 RWTexture2D<float4> gOutput;
 
 cbuffer RayGenCB {
     uint gFrameCount;
     uint gMaxBounces;
-    uint gMinBouncesBeforeRussianRoulette;
     float gTMin;
     float gTMax;
 }

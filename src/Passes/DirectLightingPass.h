@@ -11,8 +11,7 @@ protected:
 	std::string mOutputBuffer;
 
 	uint32_t mFrameCount = 0x1337u;
-	uint32_t mMaxBounces = 8;
-	uint32_t mMinBouncesBeforeRussianRoulette = 3;
+	uint32_t mMaxBounces = 5;
 
 	DirectLightingPass(const std::string &outputBuffer) : ::RenderPass("Direct Lighting", "Direct Lighting Settings") {
 		mOutputBuffer = outputBuffer;
