@@ -21,3 +21,23 @@ float AbsCosTheta(float3 w) {
 bool SameHemisphere(float3 u, float3 v) {
     return (u.z * v.z) > 0;
 }
+
+// Specifies minimal reflectance for dielectrics (when metalness is zero).
+// See https://github.com/boksajak/referencePT/blob/eb4eb0e66474bf90e72b9d86b3537ca1a8cdb469/shaders/brdf.h#L102.
+#define MIN_DIELECTRICS_F0 0.04f
+
+// From github.com/boksajak/referencePT.
+float3 baseColorToSpecularF0(float3 baseColor, float metalness) {
+	return lerp(float3(MIN_DIELECTRICS_F0, MIN_DIELECTRICS_F0, MIN_DIELECTRICS_F0), baseColor, metalness);
+}
+
+// From github.com/boksajak/referencePT.
+float3 baseColorToDiffuseReflectance(float3 baseColor, float metalness) {
+	return baseColor * (1.0f - metalness);
+}
+
+// From github.com/boksajak/referencePT.
+float shadowedF90(float3 F0) {
+	const float t = (1.0f / MIN_DIELECTRICS_F0);
+	return min(1.0f, t * luminance(F0));
+}
