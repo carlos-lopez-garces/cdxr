@@ -4,6 +4,7 @@ float3 EstimateDirect(
     int lightNum,
     float2 uLight,
     ShadingData shadingData,
+    float brdfProbability,
     bool handleMedia
 ) {
     // Radiance.
@@ -55,9 +56,18 @@ float3 EstimateDirect(
             // to the direction of incidence. To actually place this area differential on the
             // surface, the scattering equation includes the cosine of the theta angle as a factor,
             // measured from the surface normal to the direction of incidence).
-            LambertianBRDF bxdf;
-            f = bxdf.f(it.wo, wi, shadingData.diffuse) * abs(dot(wi, it.shadingNormal));
-            scatteringPdf = bxdf.Pdf(it.wo, wi);
+            if (uScattering.x < brdfProbability) {
+            // if (gMaterial.specular.g > 0.5) {
+                SpecularBRDF specularBRDF;
+                // TODO: specify somewhere else.
+                specularBRDF.R = shadingData.diffuse; //float3(1.f, 1.f, 1.f); 
+                f = specularBRDF.f(it.wo, wi);
+                scatteringPdf = specularBRDF.Pdf(it.wo, wi);
+            } else {
+                LambertianBRDF diffuseBRDF;
+                f = diffuseBRDF.f(it.wo, wi, shadingData.diffuse) * abs(dot(wi, it.shadingNormal));
+                scatteringPdf = diffuseBRDF.Pdf(it.wo, wi);
+            }
         } else {
             // TODO: participating media.
         }
@@ -102,6 +112,7 @@ float3 UniformSampleOneLight(
     Interaction it,
     ShadingData shadingData,
     uint randSeed,
+    float brdfProbability,
     bool handleMedia
 ) {
     // Randomly choose single light to sample.
@@ -114,5 +125,5 @@ float3 UniformSampleOneLight(
     float2 uLight = float2(nextRand(randSeed), nextRand(randSeed));
     float2 uScattering = float2(nextRand(randSeed), nextRand(randSeed));
 
-    return nLights * EstimateDirect(it, uScattering, lightNum, uLight, shadingData, handleMedia);
+    return nLights * EstimateDirect(it, uScattering, lightNum, uLight, shadingData, brdfProbability, handleMedia);
 }

@@ -25,7 +25,7 @@ void spawnRay(RayDesc ray, inout SurfaceInteraction si, uint randSeed, uint2 pix
 
     TraceRay(
         gRtScene,
-        RAY_FLAG_CULL_BACK_FACING_TRIANGLES,
+        RAY_FLAG_NONE,
         0xFF,
         STANDARD_RAY_HIT_GROUP,
         hitProgramCount,
@@ -40,9 +40,7 @@ void spawnRay(RayDesc ray, inout SurfaceInteraction si, uint randSeed, uint2 pix
         si.n = payload.normal;
         si.shadingNormal = payload.shadingNormal;
         si.wo = -normalize(ray.Direction);
-        LambertianBRDF bxdf;
-        si.brdf = bxdf.Sample_f(si.wo, si.wi, float2(nextRand(randSeed), nextRand(randSeed)), si.pdf, gDiffuseColor[pixelIndex].rgb);
-		si.directL = gDirectL[pixelIndex];
+        si.directL = gDirectL[pixelIndex];
         // TODO: add emissive.
         // Radiance emitted by emissive objects.
 		si.Le = float(0.f);
@@ -133,7 +131,7 @@ float3 Li1(RayDesc ray, uint randSeed, uint2 pixelIndex, int depth, int maxDepth
     if (gLightsCount > 0) {
         L += si.directL;
     }
-    if (depth+1 < maxDepth && nextRand(randSeed) < si.brdfProbability) {
+    if (depth+1 < maxDepth && nextRand(randSeed) < si.brdfProbability*si.brdfProbability) {
         L += SpecularReflect2(ray, si, randSeed, pixelIndex, depth, maxDepth);
     }
     return L;
@@ -154,17 +152,18 @@ float3 SpecularReflect2(
 
     SpecularBRDF specularBRDF;
     // TODO: set somewhere else.
-    specularBRDF.R = float3(1.f, 1.f, 1.f); 
+    specularBRDF.R = float3(0.9, 0.9, 0.9); 
     float3 f = specularBRDF.Sample_f(wo, wi, pdf);
 
     float3 ns = si.shadingNormal;
     if (pdf > 0 && !IsBlack(f) && abs(dot(wi, ns)) != 0) {
         RayDesc rd;
-        rd.Origin = si.p;
+        rd.Origin = offsetRayOrigin(si.p, si.shadingNormal);
         rd.Direction = wi;
         rd.TMin = 0.0f;
         rd.TMax = 1e+38f;
         return f * Li2(rd, randSeed, pixelIndex, depth+1, maxDepth) * abs(dot(wi, ns)) / pdf;
+        // return float3(0.f, 0.f, 0.f);
     } else {
         return float3(0.f, 0.f, 0.f);
     }
@@ -185,13 +184,14 @@ float3 SpecularReflect(
 
     SpecularBRDF specularBRDF;
     // TODO: set somewhere else.
-    specularBRDF.R = float3(1.f, 1.f, 1.f); 
+    // Default value for PBRT's MirrorMaterial::R is (0.9, 0.9, 0.9).
+    specularBRDF.R = float3(0.9, 0.9, 0.9); 
     float3 f = specularBRDF.Sample_f(wo, wi, pdf);
 
     float3 ns = si.shadingNormal;
     if (pdf > 0 && !IsBlack(f) && abs(dot(wi, ns)) != 0) {
         RayDesc rd;
-        rd.Origin = si.p;
+        rd.Origin = offsetRayOrigin(si.p, si.shadingNormal);
         rd.Direction = wi;
         rd.TMin = 0.0f;
         rd.TMax = 1e+38f;
@@ -202,7 +202,9 @@ float3 SpecularReflect(
         // reflected. The AbsDot(wi, ns) = cos(wi, ns) factor places the area differential on the
         // surface (the area differential dA is originally perpendicular to the wi solid angle).
         // return f * Li(rd, randSeed, pixelIndex, depth+1, maxDepth) * abs(dot(wi, ns)) / pdf;
+        // return f * Li1(rd, randSeed, pixelIndex, depth+1, maxDepth) * abs(dot(wi, ns)) / pdf;
         return f * Li1(rd, randSeed, pixelIndex, depth+1, maxDepth) * abs(dot(wi, ns)) / pdf;
+        return float3(0.f, 0.f, 0.f);
     } else {
         return float3(0.f, 0.f, 0.f);
     }
@@ -237,7 +239,7 @@ struct DirectLightingIntegrator {
 			L += si.directL;
 		}
 
-		if (depth+1 < maxDepth && nextRand(randSeed) < si.brdfProbability) {
+		if (depth+1 < maxDepth && nextRand(randSeed) < si.brdfProbability*si.brdfProbability) {
 			// Trace rays recursively for specular reflection and transmission. In general, the direct
 			// lighting integrator estimates incident radiance using samples from light sources that
 			// illuminate the surface directly. But in order for a surface with a (perfect) specular

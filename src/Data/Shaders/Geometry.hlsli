@@ -21,6 +21,8 @@ struct SurfaceInteraction {
 	float16_t2 uvs;
 	float3 emissive;
 	float3 brdf;
+	float brdfType;
+	float brdfProbability;
 	float pdf;
 	float3 wi;
 	float3 wo;

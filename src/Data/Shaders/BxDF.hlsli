@@ -1,5 +1,5 @@
-#define BXDF_DIFFUSE 1
-#define BXDF_SPECULAR 2
+#define BRDF_DIFFUSE 1
+#define BRDF_SPECULAR 2
 
 struct LambertianBRDF {
     float3 f(float3 wo, float3 wi, float3 diffuseColor) {
@@ -58,9 +58,9 @@ struct SpecularBRDF {
     // arbitrary pair of outgoing and incident directions. Since there's no chance that an
     // arbitrary pair will satisfy the perfect reflection relation, the returned reflectance
     // is 0.
-    float3 f(float wo, float wi) {
+    float3 f(float3 wo, float3 wi) {
         // TODO: ?
-        return float3(0.f);
+        return R;
     }
 
     // Samples the BRDF. The only possible incoming direction wi for the input outgoing wo
@@ -91,3 +91,26 @@ struct SpecularBRDF {
         return 0;
     }
 };
+
+// Let P = getBRDFProbability(...). Then P is the probability of a specular bounce off of this
+// material and 1 - P of a diffuse bounce.
+// From github.com/boksajak/referencePT.
+float getBRDFProbability(MaterialData material, float3 V, float3 shadingNormal) {
+    // When using ShadingModelMetalRough. See Falcor3.1\Framework\Source\Graphics\Material\Material.h.
+    float3 baseColor = float3(material.baseColor.r, material.baseColor.g, material.baseColor.b);
+    float metalness = material.specular.g;
+
+    float specularF0 = luminance(baseColorToSpecularF0(baseColor, metalness));
+    float diffuseReflectance = luminance(baseColorToDiffuseReflectance(baseColor, metalness));
+
+    float fresnel = saturate(luminance(evaluateFresnel(
+        specularF0, 
+        shadowedF90(specularF0),
+        max(0.0f, dot(V, shadingNormal))
+    )));
+
+    float specular = fresnel;
+    float diffuse = diffuseReflectance * (1.0f - fresnel);
+    float p = (specular / max(0.0001f, (specular + diffuse)));
+    return clamp(p, 0.1f, 0.9f);
+}
