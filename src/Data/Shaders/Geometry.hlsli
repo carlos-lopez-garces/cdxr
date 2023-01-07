@@ -74,6 +74,6 @@ float3 AbsDot(float3 u, float3 v) {
 }
 
 // Flip u so that it lies in the same hemisphere as v.
-float3 Faceforward(float3 u, float3 v) {
+float3 FaceForward(float3 u, float3 v) {
 	return (dot(u, v) < 0.f) ? -u : u;
 }

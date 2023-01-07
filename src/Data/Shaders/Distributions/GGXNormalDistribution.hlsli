@@ -8,7 +8,7 @@ struct GGXNormalDistribution {
     }
 
     // From https://blog.selfshadow.com/publications/s2013-shading-course/karis/s2013_pbs_epic_notes_v2.pdf.
-    float G(float3 N float3 L, float3 V, float roughness) {
+    float G(float3 N, float3 L, float3 V, float roughness) {
         float NdotL = saturate(dot(N, L));
         float NdotV = saturate(dot(N, V));
         float k = roughness*roughness / 2;

@@ -8,7 +8,7 @@ struct TorranceSparrowMicrofacetBRDF {
     // Distribution of slope and orientation of V-shaped microfacets. The distribution function
     // gives the normalized differential area of microfacets with a given normal wh. Gives also
     // the geometric attenuation factor, GAF, that accounts for masking and shadowing. 
-    MicrofacetDistribution distribution;
+    GGXNormalDistribution distribution;
 
     // Fresnel reflectance. Evaluates the Fresnel reflectance equations that determine the 
     // fraction of light that is reflected (the rest is transmitted or absorbed).
@@ -35,18 +35,14 @@ struct TorranceSparrowMicrofacetBRDF {
         // f1 = (1.0, 1.0, 1.0) as in Chris Wyman's schlickFresnel().
         float3 F = evaluateSchlickFresnel(
             shadingData.specular,
-            float3(1, 1, 1),
+            1.f,
             dot(wi, FaceForward(wh, float3(0, 0, 1)))
         );
 
-        float NdotH = saturate(dot(N, H));
-        float LdotH = saturate(dot(L, H));
-        float NdotV = saturate(dot(N, V));
-
         return 
             R 
-            * distribution.D(it.n, wh, it.roughness)
-            * distribution.G(it.n, wi, wo, it.roughness)
+            * distribution.D(it.n, wh, shadingData.roughness)
+            * distribution.G(it.n, wi, wo, shadingData.roughness)
             * F / (4 * cosThetaI * cosThetaO);
     }
 
@@ -61,13 +57,13 @@ struct TorranceSparrowMicrofacetBRDF {
         // TODO: don't pass this; instead create BxDF objects that contain that info.
         float3 diffuseColor
     ) {
-        return ...;
+        return float3(0);
     }
 
     // Computes the PDF with which Sample_f samples the incident direction wi. This PDF is of a
     // cosine-weighted distribution: p(w)=r*cos(theta)/pi, where r=1 is the radius of the unit hemisphere
     // and theta is measured from the hemisphere's axis.
     float Pdf(float3 wo, float3 wi) {
-        return ...;
+        return 0;
     }
 };

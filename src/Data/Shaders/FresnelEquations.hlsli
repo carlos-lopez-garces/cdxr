@@ -6,7 +6,7 @@ float3 evaluateNoOpFresnel(float cosThetaI) {
 
 // From github.com/boksajak/referencePT.
 float3 evaluateSchlickFresnel(float3 f0, float f90, float NdotS) {
-	return f0 + (f90 - f0) * pow(1.0f - NdotS, 5.0f);
+	return f0 + (float3(f90, f90, f90) - f0) * pow(1.0f - NdotS, 5.0f);
 }
 
 // From github.com/boksajak/referencePT.
