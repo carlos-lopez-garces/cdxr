@@ -1,5 +1,6 @@
 #include "LambertianBRDF.hlsli"
 #include "SpecularBRDF.hlsli"
+#include "TorranceSparrowMicrofacetBRDF.hlsli"
 
 #define BRDF_DIFFUSE 1
 #define BRDF_SPECULAR 2
