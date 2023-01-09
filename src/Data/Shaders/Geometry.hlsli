@@ -1,10 +1,25 @@
+// Obtains an orthonormal basis out of v1. Assumes that v1 is normalized.
+void CoordinateSystem(
+    float3 v1, inout float3 v2, inout float3 v3
+) {
+    if (abs(v1.x) > abs(v1.y)) {
+        v2 = float3(-v1.z, 0, v1.x) / sqrt(v1.x*v1.x + v1.z*v1.z);
+    } else {
+        v2 = float3(0, v1.z, -v1.y) / sqrt(v1.y*v1.y + v1.z*v1.z);
+    }
+
+    v3 = cross(v1, v2);
+}
+
 struct Interaction {
+	float2 pixelIndex;
 	float3 p;
 	float3 n;
 	float3 shadingNormal;
 	float3 wo;
 	float3 wi;
 	float pdf;
+	BSDF bsdf;
 	bool isSurfaceInteraction;
 
 	bool IsSurfaceInteraction() {
@@ -37,14 +52,6 @@ struct SurfaceInteraction {
 
 	bool hasHit() {
 		return hit;
-	}
-
-	void ComputeScatteringFunctions(RayDesc ray) {
-		// TODO: Compute differentials of P and UV mappings. They may be needed next by materials
-    	// that evaluate textures to obtain BSDF parameters.
-		if (IsBlack(brdf)) {
-			return;
-		}
 	}
 };
 
