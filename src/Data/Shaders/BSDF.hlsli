@@ -58,7 +58,7 @@ struct BSDF {
         // Evaluate only the BRDFs when incident and outgoing direction vectors are on the same hemisphere.
         // TODO: evaluate only the BTDFs when they are on opposite hemispheres.
         if (reflect && hasDiffuseBRDF) {
-            f += diffuseBRDF.f(wo, wi, diffuseBRDF.R);
+            f += diffuseBRDF.f(wo, wi);
         }
         if (reflect && hasSpecularBRDF) {
             f += specularBRDF.f(wo, wi);

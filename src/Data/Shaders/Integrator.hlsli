@@ -9,46 +9,21 @@ float3 EstimateDirect(
 ) {
     // Radiance.
     float3 Ld = float3(0.0f);
+    float scatteringPdf = 0.f;
 
     LightData light = gLights[lightNum];
 
-    float3 Li = float3(0.f);
+    float3 diffuseLi = float3(0.f);
+    float3 specularLi = float3(0.f);
     float3 wi = float3(0.f);
     float lightPdf = 0.f;
-    float scatteringPdf = 0.f;
-	LightSample lightSample;
     VisibilityTester visibility;
-	if (light.type == LightPoint) {
-		lightSample = evalPointLight(light, it.p);
+    Sample_Li(light, it, diffuseLi, specularLi, wi, lightPdf, visibility, shadingData);
+    float3 Li = diffuseLi; // + specularLi;
 
-        // A PointLight has a delta distribution of direction; it illuminates a given
-        // point of incidence from a single direction with probability 1.
-        lightPdf = 1.f;
-        // Which is intensity * falloff.
-        Li = lightSample.diffuse;
-
-        visibility.n = it.n;
-        visibility.p0 = it.p;
-        visibility.p1 = lightSample.posW;
-    } else if (light.type == LightDirectional) {
-		lightSample = evalDirectionalLight(light, it.p);
-        lightPdf = 1.f;
-        // Which is equal to intensity.
-        Li = lightSample.diffuse;
-
-        // Place p1 outside the scene along the light source's direction. A distant
-        // light doesn't emit radiance from any particular location, just along the
-        // same direction.
-        visibility.n = it.n;
-        visibility.p0 = it.p;
-        visibility.p1 = it.p + lightSample.L * (2 * 1e3f);
-    } else {
-        // TODO: area lights.
-        return Ld;
-    }
-	wi = normalize(lightSample.L);
     if (lightPdf > 0.f && !IsBlack(Li)) {
         float3 f = float3(0.f);
+
         // Evaluate BSDF for sampled incident direction.
         if (it.IsSurfaceInteraction()) {
             // TODO: other BRDFs.
@@ -56,18 +31,8 @@ float3 EstimateDirect(
             // to the direction of incidence. To actually place this area differential on the
             // surface, the scattering equation includes the cosine of the theta angle as a factor,
             // measured from the surface normal to the direction of incidence).
-            if (uScattering.x < brdfProbability) {
-            // if (gMaterial.specular.g > 0.5) {
-                SpecularBRDF specularBRDF;
-                // TODO: specify somewhere else.
-                specularBRDF.R = shadingData.diffuse; //float3(1.f, 1.f, 1.f); 
-                f = specularBRDF.f(it.wo, wi);
-                scatteringPdf = specularBRDF.Pdf(it.wo, wi);
-            } else {
-                LambertianBRDF diffuseBRDF;
-                f = diffuseBRDF.f(it.wo, wi, shadingData.diffuse) * abs(dot(wi, it.shadingNormal));
-                scatteringPdf = diffuseBRDF.Pdf(it.wo, wi);
-            }
+            f = it.bsdf.f(it.wo, wi, it.pixelIndex) * saturate(dot(wi, it.shadingNormal));
+            scatteringPdf = it.bsdf.Pdf(it.wo, wi);
         } else {
             // TODO: participating media.
         }
@@ -75,6 +40,7 @@ float3 EstimateDirect(
         if (!IsBlack(f)) {
             // The surface or medium reflects light.
 
+            // Compute effect of visibility for light source sample.
             if (handleMedia) {
                 // TODO: handle media.
             } else if (!visibility.Unoccluded()) {

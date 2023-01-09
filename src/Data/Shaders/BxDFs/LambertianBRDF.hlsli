@@ -1,6 +1,9 @@
 struct LambertianBRDF {
-    float3 f(float3 wo, float3 wi, float3 diffuseColor) {
-        return diffuseColor * M_1_PI;
+    // Should be ShadingData.diffuse.
+    float3 R;
+
+    float3 f(float3 wo, float3 wi) {
+        return R * M_1_PI;
     }
 
     // Computes the spectral distribution of a radiometric quantity over wavelength in the
@@ -10,9 +13,7 @@ struct LambertianBRDF {
         float3 wo,
         inout float3 wi,
         float2 u,
-        inout float pdf,
-        // TODO: don't pass this; instead create BxDF objects that contain that info.
-        float3 diffuseColor
+        inout float pdf
     ) {
         // The incident direction wi corresponding to the outgoing direction wo may be any
         // one on the hemisphere centered at the point u and on the side of the surface where
@@ -37,7 +38,7 @@ struct LambertianBRDF {
         pdf = Pdf(wo, wi);
 
         // TODO.
-        return f(wo, wi, diffuseColor);
+        return f(wo, wi);
     }
 
     // Computes the PDF with which Sample_f samples the incident direction wi. This PDF is of a
