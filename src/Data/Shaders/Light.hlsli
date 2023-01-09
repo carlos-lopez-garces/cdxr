@@ -2,6 +2,55 @@ bool IsDeltaLight(LightData light) {
     return light.type == LightPoint || light.type == LightDirectional;
 }
 
+void Sample_Li(
+    LightData light,
+    Interaction it,
+    inout float3 diffuseLi,
+    inout float3 specularLi,
+    inout float3 wi,
+    inout float pdf,
+    inout VisibilityTester visibility,
+    ShadingData shadingData
+) {
+    pdf = 0.f;
+
+    if (light.type == LightPoint) {
+        // evalPointLight doesn't compute the common fields of LightSample.
+        LightSample lightSample = evalLight(light, shadingData);
+
+        wi = normalize(lightSample.L);
+
+        // A PointLight has a delta distribution of direction; it illuminates a given
+        // point of incidence from a single direction with probability 1.
+        pdf = 1.f;
+
+        // Which is intensity * falloff.
+        diffuseLi = lightSample.diffuse;
+        specularLi = lightSample.specular;
+
+        visibility.n = it.n;
+        visibility.p0 = it.p;
+        visibility.p1 = lightSample.posW;
+    } else if (light.type == LightDirectional) {
+        // evalDirectionalLight doesn't compute the common fields of LightSample.
+        LightSample lightSample = evalLight(light, shadingData);
+
+        wi = normalize(lightSample.L);
+
+        pdf = 1.f;
+
+        diffuseLi = lightSample.diffuse;
+        specularLi = lightSample.specular;
+
+        // Place p1 outside the scene along the light source's direction. A distant
+        // light doesn't emit radiance from any particular location, just along the
+        // same direction.
+        visibility.n = it.n;
+        visibility.p0 = it.p;
+        visibility.p1 = it.p + lightSample.L * (2 * 1e3f);
+    }
+}
+
 struct ShadowRayPayload {
     bool hit;
 };
