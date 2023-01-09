@@ -22,6 +22,10 @@ bool SameHemisphere(float3 u, float3 v) {
     return (u.z * v.z) > 0;
 }
 
+float3 Reflect(float3 wo, float3 n) {
+    return -wo + 2*dot(wo, n)* n;
+}
+
 // Specifies minimal reflectance for dielectrics (when metalness is zero).
 // See https://github.com/boksajak/referencePT/blob/eb4eb0e66474bf90e72b9d86b3537ca1a8cdb469/shaders/brdf.h#L102.
 #define MIN_DIELECTRICS_F0 0.04f
