@@ -65,3 +65,28 @@ struct BSDF {
         return f;
     }
 };
+
+// Creates the BSDF at the surface-ray intersection point.
+void ComputeScatteringFunctions(
+    Interaction it,
+    ShadingData shadingData,
+    bool allowMultipleLobes
+) {
+    it.bsdf.ns = it.shadingNormal;
+    it.bsdf.ng = it.n;
+    it.bsdf.ss = float3(0.f);
+    it.bsdf.ts = float3(0.f);
+    CoordinateSystem(it.bsdf.ns, it.bsdf.ss, it.bsdf.ts);
+
+    it.bsdf.hasDiffuseBRDF = false;
+    if (!IsBlack(shadingData.diffuse)) {
+        it.bsdf.hasDiffuseBRDF = true;
+        it.bsdf.diffuseBRDF.R = shadingData.diffuse;
+    }
+
+    it.bsdf.hasSpecularBRDF = false;
+    if (!IsBlack(shadingData.specular)) {
+        it.bsdf.hasSpecularBRDF = true;
+        it.bsdf.specularBRDF.R = shadingData.specular;
+    }		
+}
