@@ -7,7 +7,7 @@ struct SpecularBRDF {
     // is 0.
     float3 f(float3 wo, float3 wi) {
         // TODO: ?
-        return R;
+        return float3(0.f);
     }
 
     // Samples the BRDF. The only possible incoming direction wi for the input outgoing wo
