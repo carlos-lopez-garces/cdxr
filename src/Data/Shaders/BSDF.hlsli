@@ -18,6 +18,8 @@ struct BSDF {
     bool hasSpecularBRDF = false;
     SpecularBRDF specularBRDF;
 
+    int nBxDFs = 0;
+
     int NumComponents() {
         int num = 0;
         if (hasDiffuseBRDF) num++;
@@ -43,7 +45,7 @@ struct BSDF {
         );
     }
 
-    float3 f(float3 woW, float3 wiW, float bxdfType) {
+    float3 f(float3 woW, float3 wiW, float2 pixelIndex) {
         float3 wi = WorldToLocal(wiW);
         float3 wo = WorldToLocal(woW);
 
@@ -64,11 +66,37 @@ struct BSDF {
 
         return f;
     }
+
+    float Pdf(float3 woW, float3 wiW) {
+        if (nBxDFs == 0) {
+            return 0.f;
+        }
+
+        float3 wi = WorldToLocal(wiW);
+        float3 wo = WorldToLocal(woW);
+        if (wo.z == 0) {
+            return 0.f;
+        }
+
+        float pdf = 0.f;
+        // TODO: determine matching components using input requested type.
+        int matchingComps = nBxDFs;
+        if (hasDiffuseBRDF) {
+            pdf += diffuseBRDF.Pdf(wo, wi);
+        }
+        if (hasSpecularBRDF) {
+            pdf += specularBRDF.Pdf(wo, wi);
+        }
+
+        // The probability of sampling wi for a given wo is the average of the PDFs of all 
+        // the BxDFs that match the input flags.
+        return matchingComps > 0 ? pdf / matchingComps : 0.f;
+    }
 };
 
 // Creates the BSDF at the surface-ray intersection point.
 void ComputeScatteringFunctions(
-    Interaction it,
+    inout Interaction it,
     ShadingData shadingData,
     bool allowMultipleLobes
 ) {
@@ -82,11 +110,13 @@ void ComputeScatteringFunctions(
     if (!IsBlack(shadingData.diffuse)) {
         it.bsdf.hasDiffuseBRDF = true;
         it.bsdf.diffuseBRDF.R = shadingData.diffuse;
+        it.bsdf.nBxDFs++;
     }
 
     it.bsdf.hasSpecularBRDF = false;
     if (!IsBlack(shadingData.specular)) {
         it.bsdf.hasSpecularBRDF = true;
         it.bsdf.specularBRDF.R = shadingData.specular;
+        it.bsdf.nBxDFs++;
     }		
 }
