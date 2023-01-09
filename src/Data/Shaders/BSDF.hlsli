@@ -18,6 +18,13 @@ struct BSDF {
     bool hasSpecularBRDF = false;
     SpecularBRDF specularBRDF;
 
+    int NumComponents() {
+        int num = 0;
+        if (hasDiffuseBRDF) num++;
+        if (hasSpecularBRDF) num++;
+        return num;
+    }
+
     // Change of coordinate from world space to shading space.
     float3 WorldToLocal(float3 v) {
         // TODO: explain; this is not the change-of-coordinate matrix I'm familiar
