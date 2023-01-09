@@ -13,7 +13,7 @@ struct BSDF {
     float3 ts;
 
     bool hasDiffuseBRDF = false;
-    DiffuseBRDF diffuseBRDF;
+    LambertianBRDF diffuseBRDF;
 
     bool hasSpecularBRDF = false;
     SpecularBRDF specularBRDF;
@@ -34,5 +34,27 @@ struct BSDF {
             ss.y * v.x + ts.y * v.y + ns.y * v.z,
             ss.z * v.x + ts.z * v.y + ns.z * v.z
         );
+    }
+
+    float3 f(float3 woW, float3 wiW, float bxdfType) {
+        float3 wi = WorldToLocal(wiW);
+        float3 wo = WorldToLocal(woW);
+
+        // Determine whether the incident and outgoing direction vectors are on the same or
+        // opposite hemispheres.
+        bool reflect = dot(wiW, ng) * dot(woW, ng) > 0;
+
+        float3 f = float3(0.f);
+
+        // Evaluate only the BRDFs when incident and outgoing direction vectors are on the same hemisphere.
+        // TODO: evaluate only the BTDFs when they are on opposite hemispheres.
+        if (reflect && hasDiffuseBRDF) {
+            f += diffuseBRDF.f(wo, wi, diffuseBRDF.R);
+        }
+        if (reflect && hasSpecularBRDF) {
+            f += specularBRDF.f(wo, wi);
+        }
+
+        return f;
     }
 };
