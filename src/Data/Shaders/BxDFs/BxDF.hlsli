@@ -2,6 +2,7 @@
 #include "SpecularBRDF.hlsli"
 #include "TorranceSparrowMicrofacetBRDF.hlsli"
 
+#define BXDF_NONE 0
 #define BRDF_DIFFUSE 1
 #define BRDF_SPECULAR 2
 
