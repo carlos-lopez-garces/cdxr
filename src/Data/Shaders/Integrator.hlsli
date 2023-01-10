@@ -9,16 +9,18 @@ float3 EstimateDirect(
 ) {
     // Radiance.
     float3 Ld = float3(0.0f);
-    float scatteringPdf = 0.f;
 
     LightData light = gLights[lightNum];
 
-    float3 diffuseLi = float3(0.f);
-    float3 specularLi = float3(0.f);
     float3 wi = float3(0.f);
     float lightPdf = 0.f;
+    float scatteringPdf = 0.f;
     VisibilityTester visibility;
+    float3 diffuseLi = float3(0.f);
+    float3 specularLi = float3(0.f);
     Sample_Li(light, it, diffuseLi, specularLi, wi, lightPdf, visibility, shadingData);
+    // diffuseLi = specularLi typically, nut for light probes, the diffuse and specular
+    // components are different.
     float3 Li = diffuseLi; // + specularLi;
 
     if (lightPdf > 0.f && !IsBlack(Li)) {
