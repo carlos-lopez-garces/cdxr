@@ -1,11 +1,9 @@
-RWTexture2D<float4> gDiffuseColor;
 RWTexture2D<float3> gDirectL;
 RWTexture2D<float3> gLe;
 RWTexture2D<float3> gWo;
 RWTexture2D<float3> gWi;
-RWTexture2D<float3> gBRDF;
-RWTexture2D<float> gPDF;
-// Environment map;
+RWTexture2D<float4> gBRDF;
+RWTexture2D<float2> gPDF;
 Texture2D<float4> gEnvMap;
 
 struct PTRayPayload {
@@ -30,7 +28,6 @@ void spawnRay(RayDesc ray, inout SurfaceInteraction si, uint randSeed, uint2 pix
         STANDARD_RAY_HIT_GROUP,
         // hitProgramCount is supplied by the framework and is the number of hit groups that exist.
         hitProgramCount,
-        // Miss shader?
         STANDARD_RAY_HIT_GROUP,
         ray,
         payload,
@@ -43,8 +40,10 @@ void spawnRay(RayDesc ray, inout SurfaceInteraction si, uint randSeed, uint2 pix
         si.shadingNormal = payload.shadingNormal;
         si.wo = gWo[pixelIndex];
         si.wi = gWi[pixelIndex];
-        si.brdf = gBRDF[pixelIndex];
-        si.pdf = gPDF[pixelIndex];
+        si.brdf = gBRDF[pixelIndex].rgb;
+        si.brdfType = gBRDF[pixelIndex].a;
+        si.brdfProbability = gPDF[pixelIndex].y;
+        si.pdf = gPDF[pixelIndex].x;
         si.directL = gDirectL[pixelIndex].xyz;
     } else {
         si.Le = gDirectL[pixelIndex].xyz;
@@ -54,9 +53,6 @@ void spawnRay(RayDesc ray, inout SurfaceInteraction si, uint randSeed, uint2 pix
 [shader("closesthit")]
 void PTClosestHit(inout PTRayPayload payload, BuiltInTriangleIntersectionAttributes attributes) {
     VertexOut vsOut = getVertexAttributes(PrimitiveIndex(), attributes);
-
-    // PrimitiveIndex() is an object introspection intrinsic that returns
-    // the identifier of the current primitive.
     ShadingData shadingData = prepareShadingData(vsOut, gMaterial, gCamera.posW, 0);
 
     Interaction it;
@@ -66,37 +62,51 @@ void PTClosestHit(inout PTRayPayload payload, BuiltInTriangleIntersectionAttribu
     // TODO: when implementing participating media, determine whether this is surface or medium.
     it.isSurfaceInteraction = true;
     it.wo = -normalize(WorldRayDirection());
+    it.pixelIndex = payload.pixelIndex;
+
+    // Prepare BSDFs.
+    ComputeScatteringFunctions(it, shadingData, true);
+    // TODO: handle participating media boundaries.
+
     // TODO: handle media.
     bool handleMedia = false;
-    float3 L = UniformSampleOneLight(it, shadingData, payload.randSeed, handleMedia);
+    // TODO: remove; not actually using brdfProbability. 
+    float brdfProbability = getBRDFProbability(gMaterial, shadingData.V, it.shadingNormal);
+    // Place the i+1th vertex of the path at a light source by sampling a point on one of them.
+    // Compute the radiance contribution of the ith vertex (the current intersection) as a resut
+    // of direct lighting from the chosen light source.
+    float3 L = UniformSampleOneLight(it, shadingData, payload.randSeed, brdfProbability, handleMedia);
     gDirectL[payload.pixelIndex] = L;
 
-    gDiffuseColor[payload.pixelIndex] = float4(shadingData.diffuse, shadingData.opacity);
-
-    LambertianBRDF diffuseBRDF;
-    gBRDF[payload.pixelIndex] = diffuseBRDF.Sample_f(
+    // Sample the BSDF at the ith vertex to obtain a direction in which to extend the current path
+    // of length i to obtain the next path of length i+i.
+    float bxdfType;
+    float3 f = it.bsdf.Sample_f(
         it.wo,
         it.wi,
         float2(nextRand(payload.randSeed), nextRand(payload.randSeed)),
         it.pdf,
-        gDiffuseColor[payload.pixelIndex].rgb
+        bxdfType,
+        payload.pixelIndex
     );
-
-    SpecularBRDF specularBRDF;
-    // TODO: specify somewhere else.
-    specularBRDF.R = float3(1.f, 1.f, 1.f);
-    gBRDF[payload.pixelIndex] = specularBRDF.Sample_f(it.wo, it.wi, it.pdf);
-
+    gBRDF[payload.pixelIndex] = float4(f, bxdfType);
     gWo[payload.pixelIndex] = it.wo;
     gWi[payload.pixelIndex] = it.wi;
-    gPDF[payload.pixelIndex] = it.pdf;
+    gPDF[payload.pixelIndex].x = it.pdf;
+    gPDF[payload.pixelIndex].y = brdfProbability;
 
     payload.hitPoint = vsOut.posW;
     payload.normal = vsOut.normalW;
-    // shadingData.N is shading normal.
     payload.shadingNormal = shadingData.N;
 
     payload.hit = true;
+
+    // Used to detect shading model used by the fscene.
+    // if (EXTRACT_SHADING_MODEL(gMaterial.flags) == ShadingModelMetalRough) {
+    //     gLe[payload.pixelIndex] = float3(1.0f, 0.0f, 0.0f);
+    // } else {
+    //     gLe[payload.pixelIndex] = float3(0.0f, 1.0f, 0.0f);
+    // }
 }
 
 [shader("anyhit")]
@@ -202,7 +212,9 @@ struct PathIntegrator {
             // of direct lighting from the chosen light source.
             L += beta * si.directL;
 
-            float3 wo = -ray.Direction;
+            // Sample the BSDF at the ith vertex to obtain a direction in which to extend the current path
+            // of length i to obtain the next path of length i+i.
+            float3 wo = si.wo;
             float3 wi = si.wi;
             float pdf = si.pdf;
             float3 f = si.brdf;
@@ -215,8 +227,7 @@ struct PathIntegrator {
             // the surface at point si.p.
             beta *= f * abs(dot(wi, si.shadingNormal)) / pdf;
 
-            // TODO: is this a specular bounce?
-            specularBounce = false;
+            specularBounce = si.brdfType == BRDF_SPECULAR;
 
             // CPBRT spawns the ray here, but here we do it at the beginning of the loop.
             ray.Origin = offsetRayOrigin(si.p, si.shadingNormal);

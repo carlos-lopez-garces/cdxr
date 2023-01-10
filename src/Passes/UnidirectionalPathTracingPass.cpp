@@ -29,7 +29,6 @@ bool UnidirectionalPathTracingPass::initialize(RenderContext* pRenderContext, Re
         "WorldPosition",
         "WorldNormal",
         "WorldShadingNormal",
-        "DiffuseColor",
         "DirectL",
         "Le",
         "Wo",
@@ -63,7 +62,6 @@ void UnidirectionalPathTracingPass::initScene(RenderContext* pRenderContext, Sce
 }
 
 void UnidirectionalPathTracingPass::execute(RenderContext* pRenderContext) {
-    Texture::SharedPtr diffuseColorTex = mpResManager->getClearedTexture("DiffuseColor", vec4(0.0f, 0.0f, 0.0f, 0.0f));
     Texture::SharedPtr directLTex = mpResManager->getClearedTexture("DirectL", vec4(0.0f, 0.0f, 0.0f, 0.0f));
     Texture::SharedPtr leTex = mpResManager->getClearedTexture("Le", vec4(0.0f, 0.0f, 0.0f, 0.0f));
     Texture::SharedPtr woTex = mpResManager->getClearedTexture("Wo", vec4(0.0f, 0.0f, 0.0f, 0.0f));
@@ -87,7 +85,6 @@ void UnidirectionalPathTracingPass::execute(RenderContext* pRenderContext) {
     rayGenVars["gWsShadingNorm"] = mpResManager->getTexture("WorldShadingNormal");
     rayGenVars["gRayOriginOnLens"] = mpResManager->getTexture("PrimaryRayOriginOnLens");
     rayGenVars["gPrimaryRayDirection"] = mpResManager->getTexture("PrimaryRayDirection");
-    rayGenVars["gDiffuseColor"] = diffuseColorTex;
     rayGenVars["gDirectL"] = directLTex;
     rayGenVars["gLe"] = leTex;
     rayGenVars["gWo"] = woTex;
@@ -98,7 +95,6 @@ void UnidirectionalPathTracingPass::execute(RenderContext* pRenderContext) {
 
     // Set up variables for all hit shaders of the PT shader.
     for (auto ptHitVars : mpRayTracer->getHitVars(0)) {
-        ptHitVars["gDiffuseColor"] = diffuseColorTex;
         ptHitVars["gDirectL"] = directLTex;
         ptHitVars["gLe"] = leTex;
         ptHitVars["gWo"] = woTex;
