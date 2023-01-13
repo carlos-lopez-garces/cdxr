@@ -34,6 +34,11 @@ float AbsCosTheta(float3 w) {
     return abs(w.z);
 }
 
+float TanTheta(float3 w) {
+    // Trigonometric identity.
+    return SinTheta(w) / CosTheta(w);
+}
+
 float Tan2Theta(float3 w) {
     // Trigonometric identity.
     return Sin2Theta(w) / Cos2Theta(w);
