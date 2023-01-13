@@ -1,10 +1,12 @@
 #include "LambertianBRDF.hlsli"
 #include "SpecularBRDF.hlsli"
+#include "AshikhminShirleyBRDF.hlsli"
 #include "TorranceSparrowMicrofacetBRDF.hlsli"
 
 #define BXDF_NONE 0
 #define BRDF_DIFFUSE 1
 #define BRDF_SPECULAR 2
+#define BRDF_GLOSSY 3
 
 // Let P = getBRDFProbability(...). Then P is the probability of a specular bounce off of this
 // material and 1 - P of a diffuse bounce.
