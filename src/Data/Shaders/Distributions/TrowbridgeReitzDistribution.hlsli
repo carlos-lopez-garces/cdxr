@@ -101,4 +101,12 @@ struct TrowbridgeReitzDistribution {
 
         return wh;
     }
+
+    float Lambda(float3 w) {
+        float absTanTheta = abs(TanTheta(w));
+        if (isinf(absTanTheta)) return 0.;
+        float alpha = sqrt(Cos2Phi(w) * alphaX * alphaX + Sin2Phi(w) * alphaY * alphaY);
+        float alpha2Tan2Theta = (alpha * absTanTheta) * (alpha * absTanTheta);
+        return (-1 + sqrt(1.f + alpha2Tan2Theta)) / 2;
+    }
 };
