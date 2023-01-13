@@ -50,3 +50,23 @@ float3 TrowbridgeReitzSample(
     slope_y = alpha_y * slope_y;
     return normalize(float3(-slope_x, -slope_y, 1.));
 }
+
+struct TrowbridgeReitzDistribution {
+    // Parameters of the distribution. Alpha X and Y control the roughness of the
+    // surface. RoughnessToAlpha() maps a roughness value in the typical [0,1] range
+    // to alpha X and Y values. 
+    float alphaX;
+    float alphaY;
+
+    // Trowbridge-Reitz microfacet distribution function. Anisotropic in general (dependent on
+    // azimuthal angle phi), isotropic in the case where alphaX = alphaY.
+    float D(float3 wh) {
+        float tan2Theta = Tan2Theta(wh);
+        if (isinf(tan2Theta)) {
+            return 0.;
+        }
+        float cos4Theta = Cos2Theta(wh) * Cos2Theta(wh);
+        float e = (Cos2Phi(wh) / (alphaX * alphaX) + Sin2Phi(wh) / (alphaY * alphaY)) * tan2Theta;
+        return 1 / (M_PI * alphaX * alphaY * cos4Theta * (1 + e) * (1 + e));
+    }
+};
