@@ -79,6 +79,16 @@ struct TrowbridgeReitzDistribution {
         return 1 / (1 + Lambda(wo) + Lambda(wi));
     }
 
+    // 0 <= G1(w) <= 1 is Smith's masking-shadowing function that gives the fraction of
+    // normalized and projected microfacet area that is visible from the direction w. If
+    // we let A+(w) denote the projected area of forward facing microfacets in the direction w
+    // A-(w) the projected area of backfacing microfacets, then G1(w) = [A+(w) - A-(w)]/A+(w)
+    // is the ratio of visible forward-facing microfacet area to total forward-facing microfacet
+    // area. 
+    float3 G1(float3 w) const {
+        return 1 / (1 + Lambda(w));
+    }
+
     float3 Sample_wh(float3 wo, float2 u) {
         float3 wh;
 
@@ -107,6 +117,14 @@ struct TrowbridgeReitzDistribution {
         }
 
         return wh;
+    }
+
+    float Pdf(float3 wo, float3 wh) {
+        if (sampleVisibleArea) {
+            return D(wh) * G1(wo) * AbsDot(wo, wh) / AbsCosTheta(wo);
+        } else {
+            return D(wh) * AbsCosTheta(wh);
+        }
     }
 
     float Lambda(float3 w) {
