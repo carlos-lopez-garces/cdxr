@@ -18,12 +18,16 @@ struct BSDF {
     bool hasSpecularBRDF = false;
     SpecularBRDF specularBRDF;
 
+    bool hasAshikhminShirleyBRDF = false;
+    AshikhminShirleyBRDF ashikhminShirleyBRDF;
+
     int nBxDFs = 0;
 
     int NumComponents() {
         int num = 0;
         if (hasDiffuseBRDF) num++;
         if (hasSpecularBRDF) num++;
+        if (hasAshikhminShirleyBRDF) num++;
         return num;
     }
 
@@ -63,6 +67,9 @@ struct BSDF {
         if (reflect && hasSpecularBRDF) {
             f += specularBRDF.f(wo, wi);
         }
+        if (reflect && hasAshikhminShirleyBRDF) {
+            f += ashikhminShirleyBRDF.f(wo, wi);
+        }
 
         return f;
     }
@@ -84,7 +91,11 @@ struct BSDF {
             sampledType = BXDF_NONE;
             return float3(0.f);
         } else if (matchingComps == 1) {
-            bxdfType = hasDiffuseBRDF ? BRDF_DIFFUSE : BRDF_SPECULAR;
+            if (hasAshikhminShirleyBRDF) {
+                bxdfType = BRDF_GLOSSY;
+            } else {
+                bxdfType = hasDiffuseBRDF ? BRDF_DIFFUSE : BRDF_SPECULAR;
+            }
         } else {
             // Choose one of the matching component BxDFs uniformly at random. Call it k.
             int kthMatchingComp = min((int) floor(u.x * matchingComps), matchingComps - 1);
@@ -107,13 +118,13 @@ struct BSDF {
         pdf = 0;
         sampledType = (float) bxdfType;
         float3 f = float3(0.f);
-        if (bxdfType == BRDF_DIFFUSE) {
+        if (bxdfType == BRDF_GLOSSY) {
+            f = ashikhminShirleyBRDF.Sample_f(wo, wi, uRemapped, pdf);
+        } else if (bxdfType == BRDF_DIFFUSE) {
             f = diffuseBRDF.Sample_f(wo, wi, uRemapped, pdf);
-            gLe[pixelIndex] = float3(0.f);
         }
         else {
             f = specularBRDF.Sample_f(wo, wi, pdf);
-            gLe[pixelIndex] = f;
         }
         if (pdf == 0) {
             sampledType = BXDF_NONE;
@@ -154,7 +165,10 @@ struct BSDF {
                 f += diffuseBRDF.f(wo, wi);
             }
             if (reflect && hasSpecularBRDF) {
-                f = specularBRDF.f(wo, wi);
+                f += specularBRDF.f(wo, wi);
+            }
+            if (reflect && hasAshikhminShirleyBRDF) {
+                f += ashikhminShirleyBRDF.f(wo, wi);
             }
         }
 
@@ -180,6 +194,9 @@ struct BSDF {
         }
         if (hasSpecularBRDF) {
             pdf += specularBRDF.Pdf(wo, wi);
+        }
+        if (hasAshikhminShirleyBRDF) {
+            pdf += ashikhminShirleyBRDF.Pdf(wo, wi);
         }
 
         // The probability of sampling wi for a given wo is the average of the PDFs of all 
@@ -212,5 +229,17 @@ void ComputeScatteringFunctions(
         it.bsdf.hasSpecularBRDF = true;
         it.bsdf.specularBRDF.R = shadingData.specular;
         it.bsdf.nBxDFs++;
-    }		
+    }
+
+    it.bsdf.hasAshikhminShirleyBRDF = true;
+    it.bsdf.ashikhminShirleyBRDF.Rd = shadingData.diffuse;
+    it.bsdf.ashikhminShirleyBRDF.Rs = shadingData.specular;
+    it.bsdf.ashikhminShirleyBRDF.sn = shadingData.N;
+    it.bsdf.ashikhminShirleyBRDF.roughness = shadingData.roughness;
+    it.bsdf.ashikhminShirleyBRDF.distribution.alphaX = it.bsdf.ashikhminShirleyBRDF.distribution.RoughnessToAlpha(shadingData.roughness);
+    it.bsdf.ashikhminShirleyBRDF.distribution.alphaY = it.bsdf.ashikhminShirleyBRDF.distribution.RoughnessToAlpha(shadingData.roughness);
+    // TODO: disabling these so that only AshikhminShirleyBRDF is used. 
+    it.bsdf.hasDiffuseBRDF = false;
+    it.bsdf.hasSpecularBRDF = false;
+    it.bsdf.nBxDFs++;
 }
