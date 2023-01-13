@@ -12,10 +12,22 @@ A more detailed description is found in [my blog](https://carlos-lopez-garces.gi
 - **Tone mapping.** 
 - Lambertian diffuse reflection and microfacet reflection models.
 - **Unidirectional path tracing.**
+- Ashikhmin-Shirley BRDF.
 
 ## Select images
 
 <table>
+  <tr>
+    <td><p align="center">
+      <i>Unidirectional path tracing, Ashikhmin-Shirley BRDF. Assets by NVIDIA.</i>
+      <img src="/images/12.png">
+    </p></td>
+    <td><p align="center">
+      <i>Unidirectional path tracing, Ashikhmin-Shirley BRDF. Assets by NVIDIA.</i>
+      <img src="/images/11.png">
+    </p></td>
+  </tr>
+
   <tr>
     <td><p align="center">
       <i>Unidirectional path tracing, combined Lambertian and specular BRDFs, and visibility testing. Assets by NVIDIA.</i>
