@@ -34,6 +34,11 @@ float AbsCosTheta(float3 w) {
     return abs(w.z);
 }
 
+float Tan2Theta(float3 w) {
+    // Trigonometric identity.
+    return Sin2Theta(w) / Cos2Theta(w);
+}
+
 float SinPhi(float3 w) {
     // The length of the projection of w onto the xy plane where phi is measured is given
     // by sin(theta).
