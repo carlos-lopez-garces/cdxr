@@ -15,7 +15,7 @@ struct AshikhminShirleyBRDF {
     float roughness;
 
     // Microfacet distribution for the glossy coat.
-    GGXNormalDistribution distribution;
+    TrowbridgeReitzDistribution distribution;
 
     // Evaluates Schlick's approximation to the Fresnel equations.
     float3 SchlickFresnel(float cosTheta) {
@@ -32,7 +32,7 @@ struct AshikhminShirleyBRDF {
         }
         wh = normalize(wh);
 
-        float3 specularTerm = distribution.D(wh, sn, roughness)
+        float3 specularTerm = distribution.D(wh)
             * SchlickFresnel(dot(wi, wh))
             / (4 * abs(dot(wi, wh)) * max(AbsCosTheta(wi), AbsCosTheta(wo)));
 
@@ -77,7 +77,7 @@ struct AshikhminShirleyBRDF {
             // (this conditional branch). Remap u_0 to the range [0,1).
             uRemapped.x = min(2 * (u.x - 0.5f), ONE_MINUS_EPSILON);
 
-            float3 wh = distribution.Sample_wh(wo, uRemapped, roughness);
+            float3 wh = distribution.Sample_wh(wo, uRemapped);
             wi = Reflect(wo, wh);
             if (!SameHemisphere(wo, wi)) {
                 return float3(0.f);
@@ -99,7 +99,7 @@ struct AshikhminShirleyBRDF {
         float3 wh = normalize(wo + wi);
 
         float diffusePdf = AbsCosTheta(wi) * M_1_PI;
-        float specularPdf = distribution.Pdf(wo, wh, sn, roughness) / (4 * dot(wo, wh));
+        float specularPdf = distribution.Pdf(wo, wh) / (4 * dot(wo, wh));
 
         // Average.
         return 0.5f * (diffusePdf + specularPdf);
