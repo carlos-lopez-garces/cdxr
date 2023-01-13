@@ -1,5 +1,6 @@
 #include <chrono>
 #include "ThinLensGBufferPass.h"
+#include "glm/gtx/string_cast.hpp"
 
 namespace {
     // Shader.
@@ -148,6 +149,16 @@ void ThinLensGBufferPass::renderGui(Gui* pGui) {
             std::string filename = "./saved_scene.fscene";
             Falcor::SceneExporter::saveScene(filename, mpScene);
         }
+
+        // Display the camera's coordinate frame.
+        pGui->addText("     ");
+        pGui->addText("Position:");
+        pGui->addText(glm::to_string(mpScene->getActiveCamera()->getPosition()).c_str());
+        pGui->addText("Up vector:");
+        pGui->addText(glm::to_string(mpScene->getActiveCamera()->getUpVector()).c_str());
+        pGui->addText("Target:");
+        pGui->addText(glm::to_string(mpScene->getActiveCamera()->getTarget()).c_str());
+        pGui->addText("     ");
     }
 
 	dirty |= (int)pGui->addCheckBox(mUseJitter ? "Jitter" : "No jitter", mUseJitter);
