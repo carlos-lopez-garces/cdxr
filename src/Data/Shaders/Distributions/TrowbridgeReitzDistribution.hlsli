@@ -52,7 +52,7 @@ float3 TrowbridgeReitzSample(
 }
 
 struct TrowbridgeReitzDistribution {
-    bool sampleVisibleArea;
+    bool sampleVisibleArea = 1;
 
     // Parameters of the distribution. Alpha X and Y control the roughness of the
     // surface. RoughnessToAlpha() maps a roughness value in the typical [0,1] range
@@ -75,7 +75,7 @@ struct TrowbridgeReitzDistribution {
     // Smith's geometric attenuation factor G(wo, wi) gives the fraction of microfacets in a
     // differential area dA that are visible from both directions wo and wi. We assume that
     // visibility is more likely the higher up a given point on a microfacet is.
-    float G(float3 wo, float3 wi) const {
+    float G(float3 wo, float3 wi) {
         return 1 / (1 + Lambda(wo) + Lambda(wi));
     }
 
@@ -85,7 +85,7 @@ struct TrowbridgeReitzDistribution {
     // A-(w) the projected area of backfacing microfacets, then G1(w) = [A+(w) - A-(w)]/A+(w)
     // is the ratio of visible forward-facing microfacet area to total forward-facing microfacet
     // area. 
-    float3 G1(float3 w) const {
+    float G1(float3 w) {
         return 1 / (1 + Lambda(w));
     }
 
@@ -121,7 +121,7 @@ struct TrowbridgeReitzDistribution {
 
     float Pdf(float3 wo, float3 wh) {
         if (sampleVisibleArea) {
-            return D(wh) * G1(wo) * AbsDot(wo, wh) / AbsCosTheta(wo);
+            return D(wh) * G1(wo) * abs(dot(wo, wh)) / AbsCosTheta(wo);
         } else {
             return D(wh) * AbsCosTheta(wh);
         }
