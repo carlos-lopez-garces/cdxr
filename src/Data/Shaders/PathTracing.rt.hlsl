@@ -13,7 +13,7 @@ import BRDF;
 #include "PRNG.hlsli"
 #include "Sampling.hlsli"
 #include "FresnelEquations.hlsli"
-#include "Distributions/GGXNormalDistribution.hlsli"
+#include "Distributions/Distribution.hlsli"
 #include "BxDFs/BxDF.hlsli"
 #include "BSDF.hlsli"
 #include "Light.hlsli"
