@@ -72,6 +72,13 @@ struct TrowbridgeReitzDistribution {
         return 1 / (M_PI * alphaX * alphaY * cos4Theta * (1 + e) * (1 + e));
     }
 
+    // Smith's geometric attenuation factor G(wo, wi) gives the fraction of microfacets in a
+    // differential area dA that are visible from both directions wo and wi. We assume that
+    // visibility is more likely the higher up a given point on a microfacet is.
+    float G(float3 wo, float3 wi) const {
+        return 1 / (1 + Lambda(wo) + Lambda(wi));
+    }
+
     float3 Sample_wh(float3 wo, float2 u) {
         float3 wh;
 
