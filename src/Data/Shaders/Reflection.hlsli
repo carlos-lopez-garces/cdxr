@@ -10,12 +10,46 @@
 // outward facing (even if it is an incident direction). When it is an incident direction, it
 // will always be in the same hemisphere as the normal n. 
 
+float SinTheta(float3 w) {
+    return sqrt(Sin2Theta(w));
+}
+
+float Sin2Theta(float3 w) {
+    // Pythagorean identity.
+    return max((float) 0, (float) 1 - Cos2Theta(w));
+}
+
+// Computes the cosine of theta, the angle between the normal in shading space and
+// and w. In shading space, n = (0,0,1) and w is normalized, so 
+// cos(theta) = dot(n, w) = (0,0,1) dot (w.x, w.y, w.z) = w.z.
 float CosTheta(float3 w) {
     return w.z;
 }
 
+float Cos2Theta(float3 w) {
+    return w.z * w.z;
+}
+
 float AbsCosTheta(float3 w) {
     return abs(w.z);
+}
+
+float SinPhi(float3 w) {
+    // The length of the projection of w onto the xy plane where phi is measured is given
+    // by sin(theta).
+    float sinTheta = SinTheta(w);
+
+    // Trigonometric identity (the projection of w is the hypotenuse of the triangle).
+    return (sinTheta == 0) ? 0 : clamp(w.y / sinTheta, -1, 1);
+}
+
+float CosPhi(float3 w) {
+    // The length of the projection of w onto the xy plane where phi is measured is given
+    // by sin(theta).
+    float sinTheta = SinTheta(w);
+
+    // Trigonometric identity (the projection of w is the hypotenuse of the triangle).
+    return (sinTheta == 0) ? 1 : clamp(w.x / sinTheta, -1, 1);
 }
 
 bool SameHemisphere(float3 u, float3 v) {
