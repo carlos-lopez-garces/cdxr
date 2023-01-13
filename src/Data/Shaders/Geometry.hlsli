@@ -72,14 +72,6 @@ void decodeNormals(float4 encodedNormals, out float3 geometryNormal, out float3 
 	shadingNormal = decodeNormalOctahedron(encodedNormals.zw);
 }
 
-float3 Dot(float3 u, float3 v) {
-	return u.x*v.x + u.y*v.y + u.z*v.z;
-}
-
-float3 AbsDot(float3 u, float3 v) {
-	return abs(Dot(u, v));
-}
-
 // Flip u so that it lies in the same hemisphere as v.
 float3 FaceForward(float3 u, float3 v) {
 	return (dot(u, v) < 0.f) ? -u : u;
