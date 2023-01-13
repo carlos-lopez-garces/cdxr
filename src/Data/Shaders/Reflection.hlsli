@@ -53,6 +53,10 @@ float SinPhi(float3 w) {
     return (sinTheta == 0) ? 0 : clamp(w.y / sinTheta, -1, 1);
 }
 
+float Sin2Phi(float3 w) {
+    return SinPhi(w) * SinPhi(w);
+}
+
 float CosPhi(float3 w) {
     // The length of the projection of w onto the xy plane where phi is measured is given
     // by sin(theta).
@@ -60,6 +64,10 @@ float CosPhi(float3 w) {
 
     // Trigonometric identity (the projection of w is the hypotenuse of the triangle).
     return (sinTheta == 0) ? 1 : clamp(w.x / sinTheta, -1, 1);
+}
+
+float Cos2Phi(float3 w) {
+    return CosPhi(w) * CosPhi(w);
 }
 
 bool SameHemisphere(float3 u, float3 v) {
