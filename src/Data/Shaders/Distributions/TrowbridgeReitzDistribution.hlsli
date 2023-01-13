@@ -109,4 +109,12 @@ struct TrowbridgeReitzDistribution {
         float alpha2Tan2Theta = (alpha * absTanTheta) * (alpha * absTanTheta);
         return (-1 + sqrt(1.f + alpha2Tan2Theta)) / 2;
     }
+
+    // Maps a roughness value in the range [0,1] to a value for one of the Trowbridge-Reitz
+    // alpha parameters.
+    float RoughnessToAlpha(float roughness) {
+        roughness = max(roughness, (float) 1e-3);
+        float x = log(roughness);
+        return 1.62142f + 0.819955f * x + 0.1734f * x * x + 0.0171201f * x * x * x + 0.000640711f * x * x * x * x;
+    }
 };
