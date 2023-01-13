@@ -84,3 +84,9 @@ float3 AbsDot(float3 u, float3 v) {
 float3 FaceForward(float3 u, float3 v) {
 	return (dot(u, v) < 0.f) ? -u : u;
 }
+
+// Converts a spherical coordinate to a rectangular coordinate in a standard coordinate system.
+// Theta is measured from the z axis. Phi is measured about the z axis from the x axis.
+float3 SphericalDirection(float sinTheta, float cosTheta, float phi) {
+    return float3(sinTheta * cos(phi), sinTheta * sin(phi), cosTheta);
+}
